@@ -4100,6 +4100,25 @@ new MutationObserver(syncPresentationArrows).observe(open, { attributes: true, a
 syncPresentationArrows();
 
 window.emcLightenTrampolineGray = async function lightenTrampolineGray(model, modelId) {
+  if (modelId === 'tramp1') {
+    const materials = new Map();
+    model.traverse(mesh => {
+      if (!mesh.isMesh) return;
+      for (const material of [].concat(mesh.material)) {
+        if (!material?.color) continue;
+        if (!materials.has(material.name)) materials.set(material.name, new Set());
+        materials.get(material.name).add(material);
+      }
+    });
+    const orange = materials.get('Color_B05')?.values().next().value;
+    if (orange) {
+      for (const border of materials.get('Color_D05') ?? []) border.color.copy(orange.color);
+    }
+    for (const name of ['M_0136_Charcoal', 'Color_M07']) {
+      for (const mat of materials.get(name) ?? []) mat.color.setRGB(0.04, 0.04, 0.04);
+    }
+  }
+
   // Original base-color texture from Suede_Dark_Gray in Trampolim Modelo 1.
   async function loadReferenceImage() {
     const image = new Image();
