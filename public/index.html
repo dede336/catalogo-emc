@@ -4118,26 +4118,26 @@ window.emcLightenTrampolineGray = async function lightenTrampolineGray(model, mo
       if (!material?.isMeshStandardMaterial || adjusted.has(material)) continue;
       adjusted.add(material);
       const name = material.name.replace(/\.\d+$/, '');
-      const carpet = name === 'Suede_Dark_Gray' || name === 'Color_M06' || name === 'Color_M07';
-      if (!carpet) continue;
+      const carpet = name === 'Suede_Dark_Gray' || (modelId === 'tramp2' && name === 'Color_M06');
+      if (!carpet || !material.map) continue;
       if (referenceImage && material.map) {
         const originalMap = material.map;
         if (!textures.has(originalMap)) {
           const carpetMap = originalMap.clone();
-          // Keep the UV transform and sampler without changing the original texture.
+          // Match the reference carpet's repeats per meter and keep the model's UV orientation.
           carpetMap.source = new originalMap.source.constructor(referenceImage);
+          carpetMap.repeat.multiplyScalar(0.2734);
           carpetMap.needsUpdate = true;
           textures.set(originalMap, carpetMap);
         }
         material.map = textures.get(originalMap);
       }
-      material.color.multiplyScalar(material.map ? 1.75 : 1.35);
-      if (material.map) {
-        material.emissiveMap = material.map;
-        material.emissive.setRGB(1, 1, 1);
-        material.emissiveIntensity = 0.38;
-        material.needsUpdate = true;
-      }
+      material.color.setRGB(1.75, 1.75, 1.75);
+      material.roughness = 0.90;
+      material.emissiveMap = material.map;
+      material.emissive.setRGB(1, 1, 1);
+      material.emissiveIntensity = 0.38;
+      material.needsUpdate = true;
     }
   });
 };
