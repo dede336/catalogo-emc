@@ -3943,10 +3943,11 @@ for(const [section,id] of [['listaPlay','playSearch'],['listaTramp','trampSearch
 function back(){photo.removeAttribute('src');detail.hidden=true;list.hidden=false;root.scrollTop=0}for(const card of cards)card.addEventListener('click',()=>{const id=card.dataset.ext;photo.src=data[id];photo.alt='Apresentação do modelo '+id;list.hidden=true;detail.hidden=false;root.scrollTop=0});document.getElementById('extReturn').onclick=back;document.getElementById('extReturnBottom').onclick=back;bindSearch(search,cards,empty,card=>card.dataset.ext);document.getElementById('categoriaExterna').addEventListener('click',back)})();</script><div class="lote-modal" id="loteModal" hidden role="dialog" aria-modal="true" aria-label="Apresentação do modelo"><img id="lotePresentation" alt=""><button type="button" id="loteOpen3D" hidden>Iniciar passeio 360°</button><p id="lote3DNote">Visualização 3D em breve.</p><button type="button" id="loteBack">Voltar ao catálogo</button></div><script type="application/json" id="loteData">{"play17":{"name":"Playground Modelo 17","presentation":"assets/0aeaf313f0d4a0773e350205.webp"},"play18":{"name":"Playground Modelo 18","presentation":"assets/03886dd56e64717355daa3aa.webp"},"play19":{"name":"Playground Modelo 19","presentation":"assets/12fbaf578955b454902bd615.webp"},"play20":{"name":"Playground Modelo 20","presentation":"assets/e28d1dfc390ad807b78f2ac0.webp"},"play21":{"name":"Playground Modelo 21","presentation":"assets/ad26ec7416260c77f206b689.webp"},"play22":{"name":"Playground Modelo 22","presentation":"assets/401d34a589654f2e03a3cebf.webp"},"play23":{"name":"Playground Modelo 23","presentation":"assets/9a0e748458023ae207126726.webp"},"play24":{"name":"Playground Modelo 24","presentation":"assets/b9119d43e4657866c21309cf.webp"},"play25":{"name":"Playground Modelo 25","presentation":"assets/f5bd741faef0f887dd3826ca.webp"},"tramp1":{"name":"Trampolim Modelo 1","presentation":"assets/5f1eb131f896bdb52423d5ee.webp"},"tramp2":{"name":"Trampolim Modelo 2","presentation":"assets/trampolim-02-apresentacao.webp"},"tramp3":{"name":"Trampolim Modelo 3","presentation":"assets/4defd3947c0fa01b8b8253d9.webp"},"tramp4":{"name":"Trampolim Modelo 4","presentation":"assets/3ed41e68a6e028bdc66ae1c8.webp"},"tramp5":{"name":"Trampolim Modelo 5","presentation":"assets/c9e7c893b50fbb8b0830bc48.webp"},"tramp6":{"name":"Trampolim Modelo 6","presentation":"assets/trampolim-06-apresentacao.webp"},"tramp7":{"name":"Trampolim Modelo 7","presentation":"assets/trampolim-07-apresentacao.webp"}}</script><script>(()=>{const data=JSON.parse(document.getElementById('loteData').textContent),modal=document.getElementById('loteModal'),img=document.getElementById('lotePresentation'),back=document.getElementById('loteBack'),open3D=document.getElementById('loteOpen3D'),note=document.getElementById('lote3DNote');let previous;for(const card of document.querySelectorAll('.lote-card')){const thumb=card.querySelector('img'),original=thumb.dataset.emcSrc||thumb.src;card.addEventListener('mouseenter',()=>{if(matchMedia('(hover:hover)').matches)thumb.src=thumb.dataset.loteAlt});card.addEventListener('mouseleave',()=>{thumb.src=original});card.addEventListener('click',()=>{const item=data[card.dataset.lote];previous=card;img.src=item.presentation;img.alt='Apresentação '+item.name;open3D.dataset.model=card.dataset.lote;open3D.hidden=!document.getElementById('m'+card.dataset.lote+'data');note.textContent='Visualização 3D em breve.';note.hidden=!open3D.hidden;modal.hidden=false;modal.scrollTop=0;(open3D.hidden?back:open3D).focus()})}function close(){modal.hidden=true;img.removeAttribute('src');if(previous)previous.focus()}back.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)close()})})();</script><script>(()=>{
 const original=window.emcAddDimensions;if(typeof original!=='function')return;
 const b64bytes=s=>{const str=atob(s.trim()),out=new Uint8Array(str.length);for(let i=0;i<str.length;i++)out[i]=str.charCodeAt(i);return out};
-function standaloneStart(number){
+function standaloneStart(number, lightenGray){
  const T=window.__emc3d,host=document.getElementById('stage'),bar=document.getElementById('toolbar'),notice=document.getElementById('notice');
  try{const str=atob(document.getElementById('model-data').textContent.trim()),bytes=new Uint8Array(str.length);for(let i=0;i<str.length;i++)bytes[i]=str.charCodeAt(i);
  new T.aa().parseAsync(bytes.buffer,'').then(({scene:model})=>{
+ if(lightenGray)lightenGray(model);
  const renderer=new T.ra({antialias:true});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.toneMapping=T._o;renderer.toneMappingExposure=.72;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.ao;host.prepend(renderer.domElement);
  const scene=new T.yi();scene.background=new T.be(0xe8edf2);scene.add(new T.er(0xfffbf1,0xb0b3ce,.7));const light=new T.Ei(0xfff7de,2);scene.add(light);
  try{const studio=new T.ua(),pmrem=new T.ys(renderer),env=pmrem.fromScene(studio,.04);scene.environment=env.texture;scene.environmentIntensity=1.15;studio.dispose();pmrem.dispose()}catch(e){}
@@ -3964,7 +3965,7 @@ async function saveModel(n,button){const old=button.textContent;button.disabled=
  const data=document.getElementById(n===1?'modelFirst':'m'+n+'data'),meta=n===1?document.getElementById('model'):data,pass=window.__catalogPassword;if(!data||!meta||!pass)throw Error('Modelo indisponível');
  let key=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64bytes(meta.dataset.salt),iterations:250000,hash:'SHA-256'},key,{name:'AES-GCM',length:256},false,['decrypt']);const buffer=await window.emcDecrypt({name:'AES-GCM',iv:b64bytes(data.dataset.iv)},key,await window.emcLoadEncrypted(data));const b64=bytesBase64(new Uint8Array(buffer)),lib=libraryCode(),dims=dimensionsCode();
  const title=n==='cama2m'?'Cama elástica 2 m':String(n).startsWith('tramp')?'Trampolim Modelo '+String(n).slice(5):'Playground Modelo '+n,css='*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:system-ui,sans-serif;background:#e8edf2}header{position:absolute;z-index:5;top:0;left:0;right:0;background:#142438;color:#fff;padding:16px 20px;font-weight:700}#stage{position:absolute;inset:0;overflow:hidden}#stage canvas{display:block;touch-action:none}#toolbar{position:absolute;z-index:5;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);display:flex;justify-content:center;flex-wrap:wrap;gap:6px;width:calc(100% - 16px);max-height:34vh;overflow:auto}button{background:#263c49;color:#fff;border:0;border-radius:8px;padding:11px 14px;font:600 14px system-ui;cursor:pointer}#notice{position:absolute;z-index:4;bottom:95px;left:0;right:0;text-align:center;color:#334957;pointer-events:none;font-size:13px}@media(max-width:700px){button{font-size:12px;padding:8px 9px;min-height:36px}#notice{bottom:125px}}';
- const closing='</'+'script>',page=['<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>',title,'</title><style>',css,'</style></head><body><header>',title,'</header><main id="stage"></main><p id="notice">Carregando brinquedo 3D…</p><div id="toolbar"><button id="auto">Giro automático</button><button id="reset">Vista inicial</button><button id="full">Tela cheia</button></div><script id="model-data" type="application/octet-stream">',b64,closing,'<script>',lib,closing,'<script>',dims,closing,'<script>(',standaloneStart.toString(),')(',JSON.stringify(n),');',closing,'</body></html>'];
+ const closing='</'+'script>',page=['<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>',title,'</title><style>',css,'</style></head><body><header>',title,'</header><main id="stage"></main><p id="notice">Carregando brinquedo 3D…</p><div id="toolbar"><button id="auto">Giro automático</button><button id="reset">Vista inicial</button><button id="full">Tela cheia</button></div><script id="model-data" type="application/octet-stream">',b64,closing,'<script>',lib,closing,'<script>',dims,closing,'<script>(',standaloneStart.toString(),')(',JSON.stringify(n),String(n).startsWith('tramp')?',('+window.emcLightenTrampolineGray.toString()+')':'',');',closing,'</body></html>'];
  const url=URL.createObjectURL(new Blob(page,{type:'text/html;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=n==='cama2m'?'Cama_Elastica_2m_3D.html':String(n).startsWith('tramp')?'Trampolim_Modelo_'+String(n).slice(5).padStart(2,'0')+'_3D.html':'Playground_Modelo_'+String(n).padStart(2,'0')+'_3D.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)
  }catch(e){alert('Não foi possível preparar o arquivo 3D. Abra novamente o brinquedo e tente outra vez.')}finally{button.disabled=false;button.textContent=old}}
 window.emcBaixar3D=saveModel;
@@ -4096,6 +4097,29 @@ function syncPresentationArrows() {
 new MutationObserver(syncPresentationArrows).observe(open, { attributes: true, attributeFilter: ['data-model'] });
 syncPresentationArrows();
 
+window.emcLightenTrampolineGray = function lightenTrampolineGray(model) {
+  const adjusted = new Set();
+  model.traverse(mesh => {
+    if (!mesh.isMesh) return;
+    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    for (const material of materials) {
+      if (!material?.isMeshStandardMaterial || adjusted.has(material)) continue;
+      adjusted.add(material);
+      const name = material.name.replace(/\.\d+$/, '');
+      const carpet = name === 'Suede_Dark_Gray' || name === 'Color_M06' || name === 'Color_M07';
+      if (!carpet) continue;
+      material.color.multiplyScalar(material.map ? 1.75 : 1.35);
+      if (material.map) {
+        // Reuse the carpet's texture for a neutral fill on faces in shade.
+        material.emissiveMap = material.map;
+        material.emissive.setRGB(1, 1, 1);
+        material.emissiveIntensity = 0.38;
+        material.needsUpdate = true;
+      }
+    }
+  });
+};
+
 for (const modelId of ['tramp1', 'tramp2', 'tramp4', 'tramp5', 'tramp6', 'tramp7']) {
   const get = id => document.getElementById(id);
   const element = suffix => get(modelId + suffix);
@@ -4123,6 +4147,7 @@ for (const modelId of ['tramp1', 'tramp2', 'tramp4', 'tramp5', 'tramp6', 'tramp7
   async function prepare() {
     const T = window.__emc3d;
     const model = await window.emcGetModel(modelId);
+    window.emcLightenTrampolineGray(model);
     const box = new T.qt().setFromObject(model);
     const size = box.getSize(new T.L());
     const max = Math.max(size.x, size.y, size.z);
