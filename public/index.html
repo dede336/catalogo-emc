@@ -3967,7 +3967,7 @@ void main() {
   }, true);
 
   document.addEventListener('click', event => {
-    if (!document.fullscreenElement || event.target.closest('#catalogo, #loteModal, .emc-share-dialog')) return;
+    if (!document.fullscreenElement || event.target.closest('#catalogo, #loteModal, dialog')) return;
     const tap = event.detail ? completed : undefined;
     completed = undefined;
     if (!html.classList.contains(visibleClass) || tap?.hidden || tap?.cancelled) {
@@ -3982,7 +3982,7 @@ void main() {
 
   document.addEventListener('keydown', event => {
     if (!document.fullscreenElement || (event.key !== 'Enter' && event.key !== ' ')) return;
-    if (event.target.closest('#catalogo, #loteModal, .emc-share-dialog') || html.classList.contains(visibleClass)) return;
+    if (event.target.closest('#catalogo, #loteModal, dialog') || html.classList.contains(visibleClass)) return;
     event.preventDefault();
     show();
   }, true);
@@ -4698,6 +4698,128 @@ html:fullscreen:not(.emc-controls-visible) :is(#viewer .controls, .emc-fs-contro
   document.addEventListener('fullscreenchange', sync);
   standalone.addEventListener('change', sync);
   sync();
+})();
+</script>
+<style>
+img, #catalogo .tile {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.emc-image-preview {
+  box-sizing: border-box;
+  max-width: calc(100vw - 20px);
+  max-height: calc(100dvh - 20px);
+  padding: 50px 8px 8px;
+  margin: auto;
+  overflow: hidden;
+  border: 0;
+  border-radius: 14px;
+  background: #152131;
+  color: #fff;
+}
+.emc-image-preview::backdrop { background: rgb(10 17 24 / 82%); }
+.emc-image-preview img {
+  display: block;
+  max-width: min(1100px, calc(100vw - 36px));
+  max-height: calc(100dvh - 78px);
+  object-fit: contain;
+}
+.emc-image-preview button {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: #263c49;
+  color: #fff;
+  cursor: pointer;
+  font: 22px system-ui, sans-serif;
+}
+</style>
+<script>
+(() => {
+  const cards = '#catalogo :is(#listaPlay, #listaTramp, #listaExterna) .tile';
+  const protectedTarget = '#catalogo .tile, img';
+  let gesture;
+  let suppressClick = false;
+
+  for (const type of ['contextmenu', 'dragstart']) {
+    document.addEventListener(type, event => {
+      if (event.target.closest(protectedTarget)) event.preventDefault();
+    }, true);
+  }
+
+  function showPreview(src, label) {
+    const dialog = document.createElement('dialog');
+    dialog.className = 'emc-image-preview';
+    dialog.setAttribute('aria-label', label);
+    const photo = new Image();
+    photo.alt = label;
+    photo.draggable = false;
+    photo.src = src;
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.autofocus = true;
+    close.textContent = '×';
+    close.setAttribute('aria-label', 'Fechar imagem ampliada');
+    close.onclick = () => dialog.close();
+    dialog.addEventListener('click', event => {
+      if (event.target !== dialog) return;
+      const {left, right, top, bottom} = dialog.getBoundingClientRect();
+      if (event.clientX < left || event.clientX > right ||
+          event.clientY < top || event.clientY > bottom) dialog.close();
+    });
+    dialog.addEventListener('close', () => dialog.remove(), {once:true});
+    dialog.append(photo, close);
+    (document.fullscreenElement || document.body).append(dialog);
+    dialog.showModal();
+  }
+
+  function clearGesture() {
+    clearTimeout(gesture?.timer);
+    gesture = undefined;
+  }
+
+  document.addEventListener('pointerdown', event => {
+    if (!event.isPrimary) { clearGesture(); return; }
+    clearGesture();
+    suppressClick = false;
+    if (event.button !== 0) return;
+    const card = event.target.closest(cards);
+    if (!card) return;
+    const primary = card.querySelector('.visual img:not(.emc-preview-alternate)');
+    const active = card.querySelector('.emc-preview-visible') || primary;
+    const src = active?.currentSrc || active?.getAttribute('src') || primary?.dataset.emcSrc;
+    if (!src) return;
+    const label = primary.alt || card.textContent.trim();
+    gesture = {
+      id:event.pointerId, x:event.clientX, y:event.clientY,
+      timer:setTimeout(() => {
+        suppressClick = true;
+        showPreview(src, label);
+      }, 550)
+    };
+  }, true);
+  document.addEventListener('pointermove', event => {
+    if (gesture?.id !== event.pointerId) return;
+    if (Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) > 10) clearGesture();
+  }, true);
+  for (const type of ['pointerup', 'pointercancel']) {
+    document.addEventListener(type, event => {
+      if (gesture?.id === event.pointerId) clearGesture();
+    }, true);
+  }
+  window.addEventListener('scroll', clearGesture, {capture:true, passive:true});
+  document.addEventListener('click', event => {
+    if (!suppressClick || event.detail === 0) return;
+    suppressClick = false;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
 })();
 </script>
 </body></html>
