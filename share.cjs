@@ -11,10 +11,12 @@ const unzip = promisify(gunzip);
 const lifetime = 7 * 24 * 60 * 60;
 const modelPattern = /^(?:[1-9]|1[0-9]|2[0-5]|cama2m|tramp[1-7])$/;
 const tokenPattern = /^([a-z0-9]+)\.(\d{10})\.([a-f0-9]{32})\.([a-f0-9]{64})$/;
+const deviceCookie = 'emc_share_device';
+const blocked = 'Este link já está vinculado a outro navegador. Peça um novo link ao vendedor para acessar por aqui.';
 const privateHeaders = {'Cache-Control':'private, no-store','Referrer-Policy':'no-referrer'};
 
 function message(res, status, body, type = 'text/plain; charset=utf-8') {
-  res.writeHead(status, {...privateHeaders,'Content-Type':type}).end(body);
+  res.writeHead(status, {...privateHeaders,'Content-Type':type,'Content-Security-Policy':"frame-ancestors 'none'"}).end(body);
   return true;
 }
 
@@ -31,6 +33,48 @@ async function readShareKey(file) {
 
 function signature(key, payload) {
   return crypto.createHmac('sha256',key).update(payload).digest('hex');
+}
+
+function readDevice(req) {
+  const prefix = deviceCookie+'=';
+  const device = (req.headers.cookie || '').split(';').map(cookie=>cookie.trim())
+    .find(cookie=>cookie.startsWith(prefix))?.slice(prefix.length);
+  return /^[a-f0-9]{64}$/.test(device || '') ? device : null;
+}
+
+const deviceDigest = device => crypto.createHash('sha256').update(device).digest('hex');
+
+async function readBinding(file) {
+  try {
+    return await fs.readFile(file,'utf8');
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+    return null;
+  }
+}
+
+async function bindDevice(file, device) {
+  const temp = file+'.'+crypto.randomBytes(8).toString('hex')+'.tmp';
+  await fs.writeFile(temp,deviceDigest(device),{flag:'wx',mode:0o600});
+  try {
+    // Publish the complete record atomically so only one first open can win.
+    await fs.link(temp,file);
+    return true;
+  } catch (error) {
+    if (error.code !== 'EEXIST') throw error;
+    return false;
+  } finally {
+    await fs.unlink(temp);
+  }
+}
+
+async function removeExpiredBindings(directory, now) {
+  for (const file of await fs.readdir(directory)) {
+    const match = /^(\d{10})\.[a-f0-9]{32}(?:\.[a-f0-9]{16}\.tmp)?$/.exec(file);
+    if (match && Number(match[1]) < now-86400) {
+      await fs.rm(path.join(directory,file),{force:true});
+    }
+  }
 }
 
 function modelSource(html, model) {
@@ -77,8 +121,28 @@ function expire(){
 }
 setTimeout(expire,Math.max(0,expiresAt-Date.now()));
 document.addEventListener('visibilitychange',expire);
-if(Date.now()<expiresAt) standaloneStart(${JSON.stringify(number)},window.emcLightenTrampolineGray,window.emcTrampolineMetal,location.pathname.replace(/\\/$/,'')+'/modelo.glb');
-else expire();`;
+async function openSharedModel(){
+ if(Date.now()>=expiresAt){expire();return;}
+ const route=location.pathname.replace(/\\/$/,'');
+ const notice=document.getElementById('notice');
+ try{
+  const access=await fetch(route+'/vincular',{method:'POST',headers:{'X-EMC-Share':'1'},cache:'no-store'});
+  if(!access.ok){notice.textContent=await access.text();return;}
+  if(Date.now()>=expiresAt){expire();return;}
+  standaloneStart(${JSON.stringify(number)},window.emcLightenTrampolineGray,window.emcTrampolineMetal,route+'/modelo.glb');
+ }catch{
+  notice.textContent='Não foi possível abrir o passeio. Tente novamente.';
+ }
+}
+if(document.visibilityState==='visible') openSharedModel();
+else {
+ const onVisible=()=>{
+  if(document.visibilityState!=='visible')return;
+  document.removeEventListener('visibilitychange',onVisible);
+  openSharedModel();
+ };
+ document.addEventListener('visibilitychange',onVisible);
+}`;
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${title}</title><style>
 *{box-sizing:border-box}body{margin:0;background:#e8edf2;font:16px system-ui,sans-serif;color:#243746}
 header{position:absolute;inset:0 0 auto;z-index:2;padding:14px 18px;background:#152131;color:white;font-weight:700}
@@ -93,6 +157,8 @@ header{position:absolute;inset:0 0 auto;z-index:2;padding:14px 18px;background:#
 function createShareHandler({root,password,authorized}) {
   let secret;
   const getSecret = () => secret ??= readShareKey(path.join(path.dirname(root),'.env.share-key'));
+  const bindings = path.join(path.dirname(root),'.env.share-bindings');
+  let nextCleanup = 0;
   return async function sharedRequest(req,res,pathname) {
     const issuing = pathname === '/api/share';
     if (!issuing && !pathname.startsWith('/compartilhado/')) return false;
@@ -119,12 +185,13 @@ function createShareHandler({root,password,authorized}) {
         const token = payload+'.'+signature(await getSecret(),payload);
         return message(res,201,JSON.stringify({path:'/compartilhado/'+token,expires}),'application/json');
       }
-      if (req.method !== 'GET') return message(res,405,'Método não permitido.');
-      const [, , token, file, extra] = pathname.split('/');
+      const [, , token, action, extra] = pathname.split('/');
       const match = tokenPattern.exec(token);
-      if (!match || extra !== undefined || (file && file !== 'modelo.glb') || !modelPattern.test(match[1])) {
+      if (!match || extra !== undefined || (action && action !== 'modelo.glb' && action !== 'vincular') || !modelPattern.test(match[1])) {
         return message(res,404,'Link inválido.');
       }
+      const claiming = action === 'vincular';
+      if (req.method !== (claiming ? 'POST' : 'GET')) return message(res,405,'Método não permitido.');
       const [,model,expires,nonce,mac] = match;
       const expected = signature(await getSecret(),model+'.'+expires+'.'+nonce);
       if (!crypto.timingSafeEqual(Buffer.from(mac,'hex'),Buffer.from(expected,'hex'))) {
@@ -133,10 +200,36 @@ function createShareHandler({root,password,authorized}) {
       if (Date.now() >= Number(expires)*1000) {
         return message(res,410,'Link expirado. Peça um novo compartilhamento ao vendedor.');
       }
+      const bindingPath = path.join(bindings,expires+'.'+nonce);
+      const binding = await readBinding(bindingPath);
+      const device = readDevice(req);
+      const matches = binding && device && binding === deviceDigest(device);
+      if (binding && !matches) return message(res,403,blocked);
+      if (claiming) {
+        if (req.headers['x-emc-share'] !== '1' ||
+            (req.headers.origin && new URL(req.headers.origin).host !== req.headers.host)) {
+          return message(res,403,'Origem inválida.');
+        }
+        if (matches) return message(res,204,'');
+        await fs.mkdir(bindings,{recursive:true,mode:0o700});
+        const now = Math.floor(Date.now()/1000);
+        if (now >= Number(expires)) return message(res,410,'Link expirado. Peça um novo compartilhamento ao vendedor.');
+        if (now >= nextCleanup) {
+          nextCleanup = now+86400;
+          void removeExpiredBindings(bindings,now).catch(error=>console.error('Falha ao limpar vínculos vencidos:',error.message));
+        }
+        const newDevice = crypto.randomBytes(32).toString('hex');
+        if (!await bindDevice(bindingPath,newDevice)) return message(res,403,blocked);
+        const secure = req.socket.encrypted || req.headers['x-forwarded-proto'] === 'https';
+        res.setHeader('Set-Cookie',deviceCookie+'='+newDevice+'; Path=/compartilhado/'+token+
+          '; Max-Age='+(Number(expires)-now)+'; HttpOnly; SameSite=Lax'+(secure ? '; Secure' : ''));
+        return message(res,204,'');
+      }
+      if (action && !matches) return message(res,403,'Abra o link do passeio para acessar o modelo.');
       const html = await fs.readFile(path.join(root,'index.html'),'utf8');
       const source = modelSource(html,model);
       if (!source) return message(res,404,'Modelo indisponível.');
-      if (file) {
+      if (action) {
         const modelData = await readModel(source,root,password);
         if (Date.now() >= Number(expires)*1000) {
           return message(res,410,'Link expirado. Peça um novo compartilhamento ao vendedor.');
