@@ -4145,8 +4145,18 @@ syncPresentationArrows();
 window.emcLightenTrampolineGray = async function lightenTrampolineGray(model, modelId) {
   if (modelId === 'tramp1') {
     const materials = new Map();
+    // These six meshes are the matching sets of hanging rings.
+    const ringMeshes = new Set(['Mesh1', 'Mesh5', 'Mesh6', 'Mesh7', 'Mesh11', 'Mesh12']);
+    let ringMaterial;
     model.traverse(mesh => {
       if (!mesh.isMesh) return;
+      if (ringMeshes.has(mesh.name) && mesh.material?.name === 'Color_M09') {
+        if (!ringMaterial) {
+          ringMaterial = mesh.material.clone();
+          ringMaterial.color.setHex(0xc49a00);
+        }
+        mesh.material = ringMaterial;
+      }
       for (const material of [].concat(mesh.material)) {
         if (!material?.color) continue;
         if (!materials.has(material.name)) materials.set(material.name, new Set());
