@@ -60,7 +60,7 @@ function sharedPage(html, model, expires) {
   const libraryCode = library.slice(0,libraryEnd+1)+'})();';
   const dimensions = scripts.find(s=>s.includes('window.emcAddDimensions=(num,object'));
   const start = scripts.find(s=>s.includes('function standaloneStart('));
-  const viewer = start.slice(start.indexOf('async function standaloneStart('),start.indexOf('\nfunction libraryCode()'));
+  const viewer = start.slice(start.indexOf('async function standaloneStart('),start.indexOf('\nfunction showShareLink('));
   const trampoline = model.startsWith('tramp');
   const adjustments = trampoline ? scripts.find(s=>s.includes('window.emcTrampolineMetal = function')) : '';
   const gray = trampoline ? adjustments.match(/window\.emcLightenTrampolineGray = [\s\S]*?\n\};/)[0] : '';

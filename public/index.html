@@ -3941,22 +3941,26 @@ for(const [section,id] of [['listaPlay','playSearch'],['listaTramp','trampSearch
     tile=>normalize(tile.querySelector('.tiletext strong').textContent),
     value=>normalize(value).replace(/^0+(?=\d+$)/,''));
 }
-function back(){photo.removeAttribute('src');detail.hidden=true;list.hidden=false;root.scrollTop=0}for(const card of cards)card.addEventListener('click',()=>{const id=card.dataset.ext;photo.src=data[id];photo.alt='Apresentação do modelo '+id;list.hidden=true;detail.hidden=false;root.scrollTop=0});document.getElementById('extReturn').onclick=back;document.getElementById('extReturnBottom').onclick=back;bindSearch(search,cards,empty,card=>card.dataset.ext);document.getElementById('categoriaExterna').addEventListener('click',back)})();</script><div class="lote-modal" id="loteModal" hidden role="dialog" aria-modal="true" aria-label="Apresentação do modelo"><img id="lotePresentation" alt=""><button type="button" id="loteOpen3D" hidden>Iniciar passeio 360°</button><p id="lote3DNote">Visualização 3D em breve.</p><button type="button" id="loteBack">Voltar ao catálogo</button></div><script type="application/json" id="loteData">{"play17":{"name":"Playground Modelo 17","presentation":"assets/0aeaf313f0d4a0773e350205.webp"},"play18":{"name":"Playground Modelo 18","presentation":"assets/03886dd56e64717355daa3aa.webp"},"play19":{"name":"Playground Modelo 19","presentation":"assets/12fbaf578955b454902bd615.webp"},"play20":{"name":"Playground Modelo 20","presentation":"assets/e28d1dfc390ad807b78f2ac0.webp"},"play21":{"name":"Playground Modelo 21","presentation":"assets/ad26ec7416260c77f206b689.webp"},"play22":{"name":"Playground Modelo 22","presentation":"assets/401d34a589654f2e03a3cebf.webp"},"play23":{"name":"Playground Modelo 23","presentation":"assets/9a0e748458023ae207126726.webp"},"play24":{"name":"Playground Modelo 24","presentation":"assets/b9119d43e4657866c21309cf.webp"},"play25":{"name":"Playground Modelo 25","presentation":"assets/f5bd741faef0f887dd3826ca.webp"},"tramp1":{"name":"Trampolim Modelo 1","presentation":"assets/5f1eb131f896bdb52423d5ee.webp"},"tramp2":{"name":"Trampolim Modelo 2","presentation":"assets/trampolim-02-apresentacao.webp"},"tramp3":{"name":"Trampolim Modelo 3","presentation":"assets/4defd3947c0fa01b8b8253d9.webp"},"tramp4":{"name":"Trampolim Modelo 4","presentation":"assets/3ed41e68a6e028bdc66ae1c8.webp"},"tramp5":{"name":"Trampolim Modelo 5","presentation":"assets/c9e7c893b50fbb8b0830bc48.webp"},"tramp6":{"name":"Trampolim Modelo 6","presentation":"assets/trampolim-06-apresentacao.webp"},"tramp7":{"name":"Trampolim Modelo 7","presentation":"assets/trampolim-07-apresentacao.webp"}}</script><script>(()=>{const data=JSON.parse(document.getElementById('loteData').textContent),modal=document.getElementById('loteModal'),img=document.getElementById('lotePresentation'),back=document.getElementById('loteBack'),open3D=document.getElementById('loteOpen3D'),note=document.getElementById('lote3DNote');let previous;for(const card of document.querySelectorAll('.lote-card')){const thumb=card.querySelector('img'),original=thumb.dataset.emcSrc||thumb.src;card.addEventListener('mouseenter',()=>{if(matchMedia('(hover:hover)').matches)thumb.src=thumb.dataset.loteAlt});card.addEventListener('mouseleave',()=>{thumb.src=original});card.addEventListener('click',()=>{const item=data[card.dataset.lote];previous=card;img.src=item.presentation;img.alt='Apresentação '+item.name;open3D.dataset.model=card.dataset.lote;open3D.hidden=!document.getElementById('m'+card.dataset.lote+'data');note.textContent='Visualização 3D em breve.';note.hidden=!open3D.hidden;modal.hidden=false;modal.scrollTop=0;(open3D.hidden?back:open3D).focus()})}function close(){modal.hidden=true;img.removeAttribute('src');if(previous)previous.focus()}back.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)close()})})();</script><script>(()=>{
+function back(){photo.removeAttribute('src');detail.hidden=true;list.hidden=false;root.scrollTop=0}for(const card of cards)card.addEventListener('click',()=>{const id=card.dataset.ext;photo.src=data[id];photo.alt='Apresentação do modelo '+id;list.hidden=true;detail.hidden=false;root.scrollTop=0});document.getElementById('extReturn').onclick=back;document.getElementById('extReturnBottom').onclick=back;bindSearch(search,cards,empty,card=>card.dataset.ext);document.getElementById('categoriaExterna').addEventListener('click',back)})();</script><div class="lote-modal" id="loteModal" hidden role="dialog" aria-modal="true" aria-label="Apresentação do modelo"><img id="lotePresentation" alt=""><button type="button" id="loteOpen3D" hidden>Iniciar passeio 360°</button><p id="lote3DNote">Visualização 3D em breve.</p><button type="button" id="loteBack">Voltar ao catálogo</button></div><script type="application/json" id="loteData">{"play17":{"name":"Playground Modelo 17","presentation":"assets/0aeaf313f0d4a0773e350205.webp"},"play18":{"name":"Playground Modelo 18","presentation":"assets/03886dd56e64717355daa3aa.webp"},"play19":{"name":"Playground Modelo 19","presentation":"assets/12fbaf578955b454902bd615.webp"},"play20":{"name":"Playground Modelo 20","presentation":"assets/e28d1dfc390ad807b78f2ac0.webp"},"play21":{"name":"Playground Modelo 21","presentation":"assets/ad26ec7416260c77f206b689.webp"},"play22":{"name":"Playground Modelo 22","presentation":"assets/401d34a589654f2e03a3cebf.webp"},"play23":{"name":"Playground Modelo 23","presentation":"assets/9a0e748458023ae207126726.webp"},"play24":{"name":"Playground Modelo 24","presentation":"assets/b9119d43e4657866c21309cf.webp"},"play25":{"name":"Playground Modelo 25","presentation":"assets/f5bd741faef0f887dd3826ca.webp"},"tramp1":{"name":"Trampolim Modelo 1","presentation":"assets/5f1eb131f896bdb52423d5ee.webp"},"tramp2":{"name":"Trampolim Modelo 2","presentation":"assets/trampolim-02-apresentacao.webp"},"tramp3":{"name":"Trampolim Modelo 3","presentation":"assets/4defd3947c0fa01b8b8253d9.webp"},"tramp4":{"name":"Trampolim Modelo 4","presentation":"assets/3ed41e68a6e028bdc66ae1c8.webp"},"tramp5":{"name":"Trampolim Modelo 5","presentation":"assets/c9e7c893b50fbb8b0830bc48.webp"},"tramp6":{"name":"Trampolim Modelo 6","presentation":"assets/trampolim-06-apresentacao.webp"},"tramp7":{"name":"Trampolim Modelo 7","presentation":"assets/trampolim-07-apresentacao.webp"}}</script><script>(()=>{const data=JSON.parse(document.getElementById('loteData').textContent),modal=document.getElementById('loteModal'),img=document.getElementById('lotePresentation'),back=document.getElementById('loteBack'),open3D=document.getElementById('loteOpen3D'),note=document.getElementById('lote3DNote');let previous;for(const card of document.querySelectorAll('.lote-card')){const thumb=card.querySelector('img'),original=thumb.dataset.emcSrc||thumb.src;card.addEventListener('mouseenter',()=>{if(matchMedia('(hover:hover)').matches)thumb.src=thumb.dataset.loteAlt});card.addEventListener('mouseleave',()=>{thumb.src=original});card.addEventListener('click',()=>{const item=data[card.dataset.lote];previous=card;img.src=item.presentation;img.alt='Apresentação '+item.name;open3D.dataset.model=card.dataset.lote;open3D.hidden=!document.getElementById('m'+card.dataset.lote+'data');note.textContent='Visualização 3D em breve.';note.hidden=!open3D.hidden;modal.hidden=false;modal.scrollTop=0;(open3D.hidden?back:open3D).focus()})}function close(){modal.hidden=true;img.removeAttribute('src');if(previous)previous.focus()}back.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)close()})})();</script><style>
+.emc-share-dialog{box-sizing:border-box;width:min(440px,calc(100% - 32px));max-height:calc(100% - 32px);margin:auto;padding:24px;border:0;border-radius:16px;background:#243946;color:#fff;font:16px system-ui,sans-serif}
+.emc-share-dialog::backdrop{background:#101d29bd}
+.emc-share-dialog h2{margin:0;font-size:1.3rem}
+.emc-share-dialog p{margin:8px 0 16px}
+.emc-share-dialog label{display:block;margin-bottom:6px}
+.emc-share-dialog input{box-sizing:border-box;width:100%;padding:10px;border:1px solid #8296a3;border-radius:8px;background:#fff;color:#142631;font:inherit}
+.emc-share-dialog .emc-share-status{min-height:1.35em;margin:8px 0}
+.emc-share-dialog form>div{display:flex;flex-wrap:wrap;gap:8px}
+.emc-share-dialog button{padding:10px 14px;border:0;border-radius:8px;background:#e5edf3;color:#142631;font:700 1rem system-ui,sans-serif;cursor:pointer}
+.emc-share-dialog button[type="button"]{background:#bbf122}
+</style><script>(()=>{
 const original=window.emcAddDimensions;if(typeof original!=='function')return;
-const b64bytes=s=>{const str=atob(s.trim()),out=new Uint8Array(str.length);for(let i=0;i<str.length;i++)out[i]=str.charCodeAt(i);return out};
 async function standaloneStart(number, lightenGray, addMetalReflections, sharedModelUrl){
  const T=window.__emc3d,host=document.getElementById('stage'),bar=document.getElementById('toolbar'),notice=document.getElementById('notice');
  try{
- let bytes;
- if(sharedModelUrl){
-  const response = await fetch(sharedModelUrl, { cache: 'no-store' });
-  if(response.status === 410){notice.textContent='Link expirado. Peça um novo compartilhamento ao vendedor.';return;}
-  if(!response.ok)throw Error('Compartilhamento indisponível');
-  bytes = await response.arrayBuffer();
- }else{
-  const text = atob(document.getElementById('model-data').textContent.trim());
-  bytes = Uint8Array.from(text,character=>character.charCodeAt(0)).buffer;
- }
+ const response = await fetch(sharedModelUrl, { cache: 'no-store' });
+ if(response.status === 410){notice.textContent='Link expirado. Peça um novo compartilhamento ao vendedor.';return;}
+ if(!response.ok)throw Error('Compartilhamento indisponível');
+ const bytes = await response.arrayBuffer();
  new T.aa().parseAsync(bytes,'').then(async ({scene:model})=>{
  if(!host.isConnected)return;
  if(lightenGray)await lightenGray(model, number);
@@ -3966,24 +3970,49 @@ async function standaloneStart(number, lightenGray, addMetalReflections, sharedM
  if(addMetalReflections)addMetalReflections(model,renderer,T,scene.environment);
  const box=new T.qt().setFromObject(model),size=new T.L,center=new T.L;box.getSize(size);box.getCenter(center);model.position.sub(center);scene.add(model);const max=Math.max(size.x,size.y,size.z);light.position.set(max*1.6,max*2.2,max*1.4);light.castShadow=true;light.shadow.mapSize.set(1024,1024);Object.assign(light.shadow.camera,{left:-max,right:max,top:max,bottom:-max,near:Math.max(.01,max*.01),far:max*8});light.shadow.normalBias=max*.001;model.traverse(o=>{if(!o.isMesh)return;const mats=Array.isArray(o.material)?o.material:[o.material];o.castShadow=mats.every(m=>m&&!m.transparent);o.receiveShadow=true});
  const camera=new T.mt(45,1,max/1000,max*100);camera.position.set(max*1.25,max*.9,max*1.7);const controls=new T.ha(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,0,0);controls.update();const start=camera.position.clone();
- if(!sharedModelUrl){
- const auto=document.getElementById('auto');auto.onclick=()=>{controls.autoRotate=!controls.autoRotate;auto.textContent=controls.autoRotate?'Pausar giro':'Giro automático'};document.getElementById('reset').onclick=()=>{controls.autoRotate=false;auto.textContent='Giro automático';camera.position.copy(start);controls.target.set(0,0,0);controls.update()};document.getElementById('full').onclick=()=>{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen?.()};
- }
  window.emcAddDimensions(number,model,camera,host,bar);const cota=bar.querySelector('[data-cotas]');if(cota)cota.click();
  function resize(){if(host.clientWidth&&host.clientHeight){camera.aspect=host.clientWidth/host.clientHeight;camera.updateProjectionMatrix();renderer.setSize(host.clientWidth,host.clientHeight)}}new ResizeObserver(resize).observe(host);resize();notice.textContent='Arraste para girar • Use os dedos para aproximar';renderer.setAnimationLoop(()=>{if(!host.isConnected){renderer.setAnimationLoop(null);renderer.dispose();return}controls.update();renderer.render(scene,camera)});
  }).catch(()=>{notice.textContent='Não foi possível abrir o modelo 3D neste aparelho.'})}catch(e){notice.textContent='Não foi possível abrir o modelo 3D neste aparelho.'}
 }
-function libraryCode(){const scripts=[...document.querySelectorAll('script:not([id])')];const lib=scripts.find(s=>s.textContent.includes('window.__emc3d={'));if(!lib)throw Error('Visualizador não encontrado');const src=lib.textContent,mark='window.__emc3d={',at=src.indexOf(mark),end=src.indexOf(';',at);return src.slice(0,end+1)+'})();'}
-function dimensionsCode(){const scripts=[...document.querySelectorAll('script:not([id])')],s=scripts.find(s=>s.textContent.includes('window.emcAddDimensions=(num,object'));if(!s)throw Error('Cotas não encontradas');return s.textContent}
-function bytesBase64(array){let out='';const len=32766;for(let i=0;i<array.length;i+=len){let block=array.subarray(i,Math.min(i+len,array.length)),str='';for(let j=0;j<block.length;j++)str+=String.fromCharCode(block[j]);out+=btoa(str)}return out}
-async function saveModel(n,button){const old=button.textContent;button.disabled=true;button.textContent='Preparando…';try{
- const data=document.getElementById(n===1?'modelFirst':'m'+n+'data'),meta=n===1?document.getElementById('model'):data,pass=window.__catalogPassword;if(!data||!meta||!pass)throw Error('Modelo indisponível');
- let key=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64bytes(meta.dataset.salt),iterations:250000,hash:'SHA-256'},key,{name:'AES-GCM',length:256},false,['decrypt']);const buffer=await window.emcDecrypt({name:'AES-GCM',iv:b64bytes(data.dataset.iv)},key,await window.emcLoadEncrypted(data));const b64=bytesBase64(new Uint8Array(buffer)),lib=libraryCode(),dims=dimensionsCode();
- const title=n==='cama2m'?'Cama elástica 2 m':String(n).startsWith('tramp')?'Trampolim Modelo '+String(n).slice(5):'Playground Modelo '+n,css='*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:system-ui,sans-serif;background:#e8edf2}header{position:absolute;z-index:5;top:0;left:0;right:0;background:#142438;color:#fff;padding:16px 20px;font-weight:700}#stage{position:absolute;inset:0;overflow:hidden}#stage canvas{display:block;touch-action:none}#toolbar{position:absolute;z-index:5;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);display:flex;justify-content:center;flex-wrap:wrap;gap:6px;width:calc(100% - 16px);max-height:34vh;overflow:auto}button{background:#263c49;color:#fff;border:0;border-radius:8px;padding:11px 14px;font:600 14px system-ui;cursor:pointer}#notice{position:absolute;z-index:4;bottom:95px;left:0;right:0;text-align:center;color:#334957;pointer-events:none;font-size:13px}@media(max-width:700px){button{font-size:12px;padding:8px 9px;min-height:36px}#notice{bottom:125px}}';
- const closing='</'+'script>',page=['<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>',title,'</title><style>',css,'</style></head><body><header>',title,'</header><main id="stage"></main><p id="notice">Carregando brinquedo 3D…</p><div id="toolbar"><button id="auto">Giro automático</button><button id="reset">Vista inicial</button><button id="full">Tela cheia</button></div><script id="model-data" type="application/octet-stream">',b64,closing,'<script>',lib,closing,'<script>',dims,closing,'<script>(',standaloneStart.toString(),')(',JSON.stringify(n),String(n).startsWith('tramp')?',('+window.emcLightenTrampolineGray.toString()+'),('+window.emcTrampolineMetal.toString()+')':'',');',closing,'</body></html>'];
- const url=URL.createObjectURL(new Blob(page,{type:'text/html;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=n==='cama2m'?'Cama_Elastica_2m_3D.html':String(n).startsWith('tramp')?'Trampolim_Modelo_'+String(n).slice(5).padStart(2,'0')+'_3D.html':'Playground_Modelo_'+String(n).padStart(2,'0')+'_3D.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)
- }catch(e){alert('Não foi possível preparar o arquivo 3D. Abra novamente o brinquedo e tente outra vez.')}finally{button.disabled=false;button.textContent=old}}
-window.emcBaixar3D=saveModel;
+function showShareLink(link) {
+  const dialog = document.createElement('dialog');
+  dialog.className = 'emc-share-dialog';
+  dialog.setAttribute('aria-labelledby', 'emc-share-title');
+  dialog.innerHTML = `
+    <form method="dialog">
+      <h2 id="emc-share-title">Compartilhar 3D</h2>
+      <p>O link fica válido por 7 dias.</p>
+      <label for="emc-share-link">Link do modelo</label>
+      <input id="emc-share-link" type="url" readonly autofocus>
+      <p class="emc-share-status" role="status"></p>
+      <div><button type="button">Copiar link</button><button type="submit">Fechar</button></div>
+    </form>`;
+  const input = dialog.querySelector('input');
+  const copy = dialog.querySelector('button[type="button"]');
+  const status = dialog.querySelector('[role="status"]');
+  input.value = link;
+  const selectLink = () => {
+    input.focus();
+    input.select();
+  };
+  input.addEventListener('click', selectLink);
+  copy.onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(link);
+      status.textContent = 'Link copiado.';
+    } catch {
+      selectLink();
+      status.textContent = 'Use a opção Copiar do seu aparelho.';
+    }
+  };
+  dialog.addEventListener('keydown', event => {
+    if (event.key === 'Escape') event.stopPropagation();
+  });
+  dialog.addEventListener('close', () => dialog.remove(), {once:true});
+  (document.fullscreenElement || document.body).append(dialog);
+  dialog.showModal();
+  selectLink();
+}
 async function shareModel(number, button) {
   button.disabled = true;
   try {
@@ -3994,14 +4023,7 @@ async function shareModel(number, button) {
     });
     if (!response.ok) throw Error('Não foi possível criar o link.');
     const {path} = await response.json();
-    const link = new URL(path, location.origin).href;
-    try {
-      await navigator.clipboard.writeText(link);
-      button.textContent = 'Link copiado';
-      setTimeout(() => { button.textContent = 'Compartilhar 3D'; }, 2000);
-    } catch {
-      window.prompt('Copie o link. Ele é válido por 7 dias:', link);
-    }
+    showShareLink(new URL(path, location.origin).href);
   } catch {
     alert('Não foi possível criar o link. Entre novamente no catálogo e tente outra vez.');
   } finally {
@@ -4017,12 +4039,7 @@ window.emcAddDimensions = function(n, model, camera, container, bar) {
     share.textContent = 'Compartilhar 3D';
     share.title = 'Copiar link do passeio 3D';
     share.addEventListener('click', () => shareModel(n, share));
-    const download = document.createElement('button');
-    download.type = 'button';
-    download.textContent = 'Baixar 3D';
-    download.title = 'Baixar passeio 3D em HTML';
-    download.addEventListener('click', () => saveModel(n, download));
-    bar.append(share, download);
+    bar.append(share);
   }
   return result;
 };
@@ -4042,6 +4059,7 @@ for(let i=0;i<ids.length;i++){const n=ids[i],target=get(n===1?'viewer':prefix(n)
     <button type="button" id="tramp1Rotate" aria-pressed="false">Giro automático</button>
     <button type="button" id="tramp1Right" aria-label="Girar à direita">→</button>
     <button type="button" id="tramp1Back">Apresentação</button>
+    <button type="button" id="tramp1Catalog">Catálogo</button>
     <button type="button" id="tramp1Fullscreen" aria-label="Tela cheia">⛶</button>
   </div>
 </section>
@@ -4053,6 +4071,7 @@ for(let i=0;i<ids.length;i++){const n=ids[i],target=get(n===1?'viewer':prefix(n)
     <button type="button" id="tramp2Rotate" aria-pressed="false">Giro automático</button>
     <button type="button" id="tramp2Right" aria-label="Girar à direita">→</button>
     <button type="button" id="tramp2Back">Apresentação</button>
+    <button type="button" id="tramp2Catalog">Catálogo</button>
     <button type="button" id="tramp2Fullscreen" aria-label="Tela cheia">⛶</button>
   </div>
 </section>
@@ -4064,6 +4083,7 @@ for(let i=0;i<ids.length;i++){const n=ids[i],target=get(n===1?'viewer':prefix(n)
     <button type="button" id="tramp4Rotate" aria-pressed="false">Giro automático</button>
     <button type="button" id="tramp4Right" aria-label="Girar à direita">→</button>
     <button type="button" id="tramp4Back">Apresentação</button>
+    <button type="button" id="tramp4Catalog">Catálogo</button>
     <button type="button" id="tramp4Fullscreen" aria-label="Tela cheia">⛶</button>
   </div>
 </section>
@@ -4075,6 +4095,7 @@ for(let i=0;i<ids.length;i++){const n=ids[i],target=get(n===1?'viewer':prefix(n)
     <button type="button" id="tramp5Rotate" aria-pressed="false">Giro automático</button>
     <button type="button" id="tramp5Right" aria-label="Girar à direita">→</button>
     <button type="button" id="tramp5Back">Apresentação</button>
+    <button type="button" id="tramp5Catalog">Catálogo</button>
     <button type="button" id="tramp5Fullscreen" aria-label="Tela cheia">⛶</button>
   </div>
 </section>
@@ -4086,6 +4107,7 @@ for(let i=0;i<ids.length;i++){const n=ids[i],target=get(n===1?'viewer':prefix(n)
     <button type="button" id="tramp6Rotate" aria-pressed="false">Giro automático</button>
     <button type="button" id="tramp6Right" aria-label="Girar à direita">→</button>
     <button type="button" id="tramp6Back">Apresentação</button>
+    <button type="button" id="tramp6Catalog">Catálogo</button>
     <button type="button" id="tramp6Fullscreen" aria-label="Tela cheia">⛶</button>
   </div>
 </section>
@@ -4097,6 +4119,7 @@ for(let i=0;i<ids.length;i++){const n=ids[i],target=get(n===1?'viewer':prefix(n)
     <button type="button" id="tramp7Rotate" aria-pressed="false">Giro automático</button>
     <button type="button" id="tramp7Right" aria-label="Girar à direita">→</button>
     <button type="button" id="tramp7Back">Apresentação</button>
+    <button type="button" id="tramp7Catalog">Catálogo</button>
     <button type="button" id="tramp7Fullscreen" aria-label="Tela cheia">⛶</button>
   </div>
 </section>
@@ -4348,6 +4371,11 @@ for (const modelId of ['tramp1', 'tramp2', 'tramp4', 'tramp5', 'tramp6', 'tramp7
     modal.hidden = false;
     if (document.fullscreenElement) document.exitFullscreen();
     open.focus();
+  };
+  element('Catalog').onclick = () => {
+    viewer.hidden = true;
+    if (document.fullscreenElement) document.exitFullscreen();
+    get('loteBack').click();
   };
   function turn(angle) {
     camera.position.sub(controls.target).applyAxisAngle(camera.up, angle).add(controls.target);
