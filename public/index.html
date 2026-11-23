@@ -4598,81 +4598,86 @@ html:fullscreen:not(.emc-controls-visible) :is(#viewer .controls, .emc-fs-contro
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const visible = new Set();
   const previews = new Map();
+  let timer;
+  let secondImage = false;
 
-  function showAlternate(img, show) {
-    const preview = previews.get(img);
+  function setPreview(preview, show) {
     preview.requested = show;
-    if (show && !preview.image) {
-      const alternate = new Image();
-      alternate.className = 'emc-preview-alternate';
-      alternate.alt = '';
-      alternate.setAttribute('aria-hidden', 'true');
-      preview.image = alternate;
-      alternate.addEventListener('load', async () => {
-        try { await alternate.decode?.(); } catch {}
-        preview.ready = true;
-        if (preview.requested) {
-          alternate.classList.add('emc-preview-visible');
-          preview.nextSwap = performance.now() + 3000;
-        }
-      }, {once:true});
-      img.parentElement.append(alternate);
-      alternate.src = preview.url;
+    preview.image?.classList.toggle('emc-preview-visible', show && preview.state === 'ready');
+  }
+
+  function preparePreview(img, preview) {
+    if (preview.image) return;
+    const alternate = new Image();
+    alternate.className = 'emc-preview-alternate';
+    alternate.alt = '';
+    alternate.setAttribute('aria-hidden', 'true');
+    preview.image = alternate;
+    preview.state = 'loading';
+    alternate.addEventListener('load', async () => {
+      try { await alternate.decode?.(); } catch {}
+      preview.state = 'ready';
+      if (!touch.matches) setPreview(preview, preview.requested);
+    }, {once:true});
+    alternate.addEventListener('error', () => { preview.state = 'failed'; }, {once:true});
+    img.parentElement.append(alternate);
+    alternate.src = preview.url;
+  }
+
+  function synchronize() {
+    clearInterval(timer);
+    secondImage = false;
+    for (const img of visible) setPreview(previews.get(img), false);
+    if (!touch.matches || reducedMotion.matches || document.hidden || !visible.size) return;
+    for (const img of visible) {
+      const preview = previews.get(img);
+      if (!img.getAttribute('src')) img.src = preview.first;
+      preparePreview(img, preview);
     }
-    if (preview.image) preview.image.classList.toggle('emc-preview-visible', show && preview.ready);
+    timer = setInterval(() => {
+      if (!secondImage && [...visible].some(img => {
+        const preview = previews.get(img);
+        return preview.state !== 'failed' && (!img.complete || preview.state !== 'ready');
+      })) return;
+      secondImage = !secondImage;
+      for (const img of visible) setPreview(previews.get(img), secondImage && Boolean(img.naturalWidth));
+    }, 3000);
   }
 
   const observer = new IntersectionObserver(entries => {
+    let changed = false;
     for (const {target, isIntersecting} of entries) {
-      if (isIntersecting) {
-        if (!visible.has(target)) previews.get(target).nextSwap = 0;
+      if (isIntersecting && !visible.has(target)) {
         visible.add(target);
-      }
-      else {
-        visible.delete(target);
-        if (touch.matches) showAlternate(target, false);
+        changed = true;
+      } else if (!isIntersecting && visible.delete(target)) {
+        if (touch.matches) setPreview(previews.get(target), false);
+        changed = true;
       }
     }
+    if (changed && touch.matches) synchronize();
   }, {root:document.getElementById('catalogo'), threshold:0.25});
 
   for (const img of document.querySelectorAll('#catalogo .tile img[data-alternate], #catalogo .tile img[data-lote-alt]')) {
     const first = img.dataset.emcSrc || img.getAttribute('src');
     const second = img.dataset.alternate || img.dataset.loteAlt;
     if (!first || !second || first === second) continue;
-    previews.set(img, {url:second, requested:false, ready:false, nextSwap:0});
+    const preview = {first, url:second, requested:false};
+    previews.set(img, preview);
     img.parentElement.classList.add('emc-photo-preview');
     observer.observe(img);
     const card = img.closest('.tile');
     card.addEventListener('pointermove', event => {
-      if (event.pointerType === 'mouse' && !touch.matches && !previews.get(img).requested) showAlternate(img, true);
+      if (event.pointerType !== 'mouse' || touch.matches || preview.requested) return;
+      preparePreview(img, preview);
+      setPreview(preview, true);
     });
-    card.addEventListener('mouseleave', () => { if (!touch.matches) showAlternate(img, false); });
+    card.addEventListener('mouseleave', () => { if (!touch.matches) setPreview(preview, false); });
   }
 
-  let timer;
-  function updateTimer() {
-    clearInterval(timer);
-    for (const img of visible) {
-      previews.get(img).nextSwap = 0;
-      showAlternate(img, false);
-    }
-    if (!touch.matches || reducedMotion.matches || document.hidden) return;
-    timer = setInterval(() => {
-      const now = performance.now();
-      for (const img of visible) {
-        if (!img.getClientRects().length || !img.complete || !img.naturalWidth) continue;
-        const preview = previews.get(img);
-        if (!preview.nextSwap) preview.nextSwap = now + 3000;
-        if (now < preview.nextSwap || (preview.image && !preview.ready)) continue;
-        showAlternate(img, !preview.requested);
-        preview.nextSwap = now + 3000;
-      }
-    }, 150);
-  }
-  touch.addEventListener('change', updateTimer);
-  reducedMotion.addEventListener('change', updateTimer);
-  document.addEventListener('visibilitychange', updateTimer);
-  updateTimer();
+  touch.addEventListener('change', synchronize);
+  reducedMotion.addEventListener('change', synchronize);
+  document.addEventListener('visibilitychange', synchronize);
 })();
 </script>
 <script>
