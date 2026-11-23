@@ -3977,7 +3977,7 @@ function jump(from,to){const token=++navigation;document.body.classList.add('emc
 for(let i=0;i<ids.length;i++){const n=ids[i],target=get(n===1?'viewer':prefix(n)+'view');if(!target)continue;target.querySelectorAll('.emc-switch').forEach(el=>el.remove());for(const delta of [-1,1]){const button=document.createElement('button');button.type='button';button.className='emc-switch '+(delta<0?'left':'right');button.textContent=delta<0?'‹':'›';button.title=delta<0?'Brinquedo anterior':'Próximo brinquedo';button.setAttribute('aria-label',button.title);button.onclick=()=>jump(n,ids[(i+delta+ids.length)%ids.length]);target.appendChild(button)}}
 })();
 </script><script>(()=>{for(const n of [21,22,23,24,25]){const card=document.getElementById('abrirModelo'+n),img=card.querySelector('img'),original=img.dataset.emcSrc||img.src,alternate=img.dataset.loteAlt;let active=false,touched=false;function swap(value){active=value;img.src=value?alternate:original}card.addEventListener('mouseenter',()=>{if(matchMedia('(hover:hover)').matches)swap(true)});card.addEventListener('mouseleave',()=>{if(matchMedia('(hover:hover)').matches)swap(false)});card.addEventListener('pointerdown',e=>{touched=e.pointerType==='touch'});card.addEventListener('click',e=>{if(touched&&!active){e.preventDefault();e.stopImmediatePropagation();swap(true);touched=false;return}touched=false},true)}})();
-</script><script>document.addEventListener('emc-catalog-ready',()=>{const pending=[...document.querySelectorAll('img[data-emc-src]')];if(!('IntersectionObserver'in window)){for(const img of pending)img.src=img.dataset.emcSrc;return}const observer=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting){const img=entry.target;if(!img.getAttribute('src'))img.src=img.dataset.emcSrc;observer.unobserve(img)}},{rootMargin:'120px'});for(const img of pending){img.decoding='async';observer.observe(img)}},{once:true});</script><section id="tramp1Viewer" hidden aria-label="Passeio 360° do Trampolim Modelo 1">
+</script><script>document.addEventListener('emc-catalog-ready',()=>{const pending=[...document.querySelectorAll('img[data-emc-src]')];if(!('IntersectionObserver'in window)){for(const img of pending)img.src=img.dataset.emcSrc;return}const observer=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting){const img=entry.target;if(!img.getAttribute('src'))img.src=img.dataset.emcSrc;observer.unobserve(img)}},{rootMargin:'120px'});for(const img of pending){img.decoding='async';observer.observe(img)}},{once:true});</script><section id="tramp1Viewer" class="tramp-viewer" hidden aria-label="Passeio 360° do Trampolim Modelo 1">
   <div id="tramp1Canvas"></div>
   <header class="emc-model-header"><strong>Trampolim Modelo 1</strong><img data-emc-src="assets/f1ac55cd8529aafd7b72d878.png" alt="EMC Playgrounds"></header>
   <div id="tramp1Controls" aria-label="Controles do passeio 360°">
@@ -3988,7 +3988,7 @@ for(let i=0;i<ids.length;i++){const n=ids[i],target=get(n===1?'viewer':prefix(n)
     <button type="button" id="tramp1Fullscreen" aria-label="Tela cheia">⛶</button>
   </div>
 </section>
-<section id="tramp2Viewer" hidden aria-label="Passeio 360° do Trampolim Modelo 2">
+<section id="tramp2Viewer" class="tramp-viewer" hidden aria-label="Passeio 360° do Trampolim Modelo 2">
   <div id="tramp2Canvas"></div>
   <header class="emc-model-header"><strong>Trampolim Modelo 2</strong><img data-emc-src="assets/f1ac55cd8529aafd7b72d878.png" alt="EMC Playgrounds"></header>
   <div id="tramp2Controls" aria-label="Controles do passeio 360°">
@@ -3999,7 +3999,7 @@ for(let i=0;i<ids.length;i++){const n=ids[i],target=get(n===1?'viewer':prefix(n)
     <button type="button" id="tramp2Fullscreen" aria-label="Tela cheia">⛶</button>
   </div>
 </section>
-<section id="tramp4Viewer" hidden aria-label="Passeio 360° do Trampolim Modelo 4">
+<section id="tramp4Viewer" class="tramp-viewer" hidden aria-label="Passeio 360° do Trampolim Modelo 4">
   <div id="tramp4Canvas"></div>
   <header class="emc-model-header"><strong>Trampolim Modelo 4</strong><img data-emc-src="assets/f1ac55cd8529aafd7b72d878.png" alt="EMC Playgrounds"></header>
   <div id="tramp4Controls" aria-label="Controles do passeio 360°">
@@ -4010,7 +4010,7 @@ for(let i=0;i<ids.length;i++){const n=ids[i],target=get(n===1?'viewer':prefix(n)
     <button type="button" id="tramp4Fullscreen" aria-label="Tela cheia">⛶</button>
   </div>
 </section>
-<section id="tramp5Viewer" hidden aria-label="Passeio 360° do Trampolim Modelo 5">
+<section id="tramp5Viewer" class="tramp-viewer" hidden aria-label="Passeio 360° do Trampolim Modelo 5">
   <div id="tramp5Canvas"></div>
   <header class="emc-model-header"><strong>Trampolim Modelo 5</strong><img data-emc-src="assets/f1ac55cd8529aafd7b72d878.png" alt="EMC Playgrounds"></header>
   <div id="tramp5Controls" aria-label="Controles do passeio 360°">
@@ -4021,7 +4021,7 @@ for(let i=0;i<ids.length;i++){const n=ids[i],target=get(n===1?'viewer':prefix(n)
     <button type="button" id="tramp5Fullscreen" aria-label="Tela cheia">⛶</button>
   </div>
 </section>
-<section id="tramp6Viewer" hidden aria-label="Passeio 360° do Trampolim Modelo 6">
+<section id="tramp6Viewer" class="tramp-viewer" hidden aria-label="Passeio 360° do Trampolim Modelo 6">
   <div id="tramp6Canvas"></div>
   <header class="emc-model-header"><strong>Trampolim Modelo 6</strong><img data-emc-src="assets/f1ac55cd8529aafd7b72d878.png" alt="EMC Playgrounds"></header>
   <div id="tramp6Controls" aria-label="Controles do passeio 360°">
@@ -4032,7 +4032,7 @@ for(let i=0;i<ids.length;i++){const n=ids[i],target=get(n===1?'viewer':prefix(n)
     <button type="button" id="tramp6Fullscreen" aria-label="Tela cheia">⛶</button>
   </div>
 </section>
-<section id="tramp7Viewer" hidden aria-label="Passeio 360° do Trampolim Modelo 7">
+<section id="tramp7Viewer" class="tramp-viewer" hidden aria-label="Passeio 360° do Trampolim Modelo 7">
   <div id="tramp7Canvas"></div>
   <header class="emc-model-header"><strong>Trampolim Modelo 7</strong><img data-emc-src="assets/f1ac55cd8529aafd7b72d878.png" alt="EMC Playgrounds"></header>
   <div id="tramp7Controls" aria-label="Controles do passeio 360°">
@@ -4055,19 +4055,63 @@ for(let i=0;i<ids.length;i++){const n=ids[i],target=get(n===1?'viewer':prefix(n)
 <script id="mtramp5data" type="application/octet-stream" data-salt="AaAq0Vtz27jrSKY52gRW4w==" data-iv="ssvlTA9u3nhj33N3" data-path="assets/mtramp5data.bin?v=0597c3d24eac"></script>
 <script id="mtramp6data" type="application/octet-stream" data-salt="6adi2rVcxPiwbtQYFJ+rVg==" data-iv="e1wVmUm1/B1sN7Ws" data-path="assets/mtramp6data.bin?v=0c23f852fcf3"></script>
 <script id="mtramp7data" type="application/octet-stream" data-salt="FkOM8n3YXiLtt22UnIeJUw==" data-iv="poaiaYxaUaJnBODf" data-path="assets/mtramp7data.bin?v=552228ef3c51"></script>
+<style>
+:is(.tramp-viewer,#loteModal) > .emc-switch{display:grid;place-items:center;min-height:0;margin:0;padding:0;border:2px solid #fff;border-radius:50%;background:rgba(23,38,50,.82);color:#fff;font-size:25px;line-height:1}
+#loteModal > .emc-switch{position:fixed}
+:is(.tramp-viewer,#loteModal) > .emc-switch[hidden]{display:none}
+:is(.tramp-viewer,#loteModal):fullscreen > .emc-switch,
+:fullscreen :is(.tramp-viewer,#loteModal) > .emc-switch{display:grid!important}
+:fullscreen #loteModal > .emc-switch[hidden]{display:none!important}
+@media(max-width:600px){:is(.tramp-viewer,#loteModal) > .emc-switch{font-size:20px}}
+</style>
 <script>
+(() => {
+const cards = [...document.querySelectorAll('#listaTramp [data-lote]')];
+const modal = document.getElementById('loteModal');
+const open = document.getElementById('loteOpen3D');
+
+function addModelArrows(container, currentModel, navigate) {
+  return [-1, 1].map(step => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'emc-switch ' + (step < 0 ? 'left' : 'right');
+    button.textContent = step < 0 ? '‹' : '›';
+    button.title = step < 0 ? 'Trampolim anterior' : 'Próximo trampolim';
+    button.setAttribute('aria-label', button.title);
+    button.onclick = () => {
+      const index = cards.findIndex(card => card.dataset.lote === currentModel());
+      if (index < 0) return;
+      navigate(cards[(index + step + cards.length) % cards.length]);
+    };
+    container.appendChild(button);
+    return button;
+  });
+}
+
+const presentationArrows = addModelArrows(modal, () => open.dataset.model, card => card.click());
+function syncPresentationArrows() {
+  const hasTrampoline = cards.some(card => card.dataset.lote === open.dataset.model);
+  for (const button of presentationArrows) button.hidden = !hasTrampoline;
+}
+new MutationObserver(syncPresentationArrows).observe(open, { attributes: true, attributeFilter: ['data-model'] });
+syncPresentationArrows();
+
 for (const modelId of ['tramp1', 'tramp2', 'tramp4', 'tramp5', 'tramp6', 'tramp7']) {
   const get = id => document.getElementById(id);
   const element = suffix => get(modelId + suffix);
   const viewer = element('Viewer');
   const stage = element('Canvas');
   const bar = element('Controls');
-  const modal = get('loteModal');
-  const open = get('loteOpen3D');
   const note = get('lote3DNote');
   const back = element('Back');
   const rotate = element('Rotate');
   let render, controls, camera;
+
+  addModelArrows(viewer, () => modelId, card => {
+    viewer.hidden = true;
+    card.click();
+    if (!open.hidden) open.click();
+  });
 
   function resize() {
     if (viewer.hidden || !stage.clientWidth || !stage.clientHeight) return;
@@ -4157,5 +4201,6 @@ for (const modelId of ['tramp1', 'tramp2', 'tramp4', 'tramp5', 'tramp6', 'tramp7
     if (event.key === 'Escape' && !viewer.hidden) back.click();
   });
 }
+})();
 </script>
 </body></html>
