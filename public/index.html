@@ -4723,6 +4723,10 @@ for (const modelId of ['tramp1', 'tramp2', 'tramp3', 'tramp4', 'tramp5', 'tramp6
   transition: opacity 600ms ease-in-out;
 }
 #catalogo .visual img.emc-preview-alternate.emc-preview-visible { opacity: 1; }
+#catalogo :is(#abrirCama2m, #abrirModelo1) .visual {
+  position: relative;
+  top: clamp(4px, 1vw, 10px);
+}
 #catalogo #abrirModelo1 .visual {
   background: #fff;
   overflow: hidden;
