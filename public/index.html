@@ -4773,7 +4773,15 @@ for (const modelId of ['tramp1', 'tramp2', 'tramp3', 'tramp4', 'tramp5', 'tramp6
   font: 700 22px system-ui, sans-serif;
   cursor: pointer;
 }
-#catalogo { touch-action: manipulation; }
+#catalogo, #catalogGate, #extDetail, .emc-model-presentation, .tramp-viewer, #viewer {
+  touch-action: manipulation;
+}
+html.emc-catalog-immersive #catalogo .top {
+  background: transparent;
+  padding-top: max(8px, env(safe-area-inset-top, 0px));
+  padding-bottom: 0;
+}
+html.emc-catalog-immersive #catalogo .top .brand { visibility: hidden; }
 html.emc-catalog-fullscreen:fullscreen :is(#full, [id^="m"][id$="full"], .tramp-viewer [id$="Fullscreen"]) {
   display: none !important;
 }
@@ -4908,60 +4916,137 @@ html:fullscreen:not(.emc-controls-visible) :is(#viewer .controls, .emc-fs-contro
   const root = document.documentElement;
   const button = document.getElementById('emcCatalogFullscreen');
   const help = document.getElementById('emcCatalogFullscreenHelp');
-  const standalone = matchMedia('(display-mode: standalone)');
   const mode = 'emc-catalog-fullscreen';
+  const immersive = 'emc-catalog-immersive';
+  const interactive = 'button, a, input, label, select, textarea, [role="button"], [contenteditable]';
+  const tapInterval = 420;
+  let pointer;
+  let released;
   let firstTap;
+  let timer;
+  let switching = false;
 
-  function isStandalone() {
-    return standalone.matches || navigator.standalone === true;
+  function clearTap(openCard = false) {
+    const card = firstTap?.card;
+    firstTap = undefined;
+    clearTimeout(timer);
+    if (openCard && card?.isConnected && !card.closest('[hidden]') && card.getClientRects().length) card.click();
   }
 
   function sync() {
-    if (!document.fullscreenElement) root.classList.remove(mode);
-    button.hidden = isStandalone() || Boolean(document.fullscreenElement);
-    button.setAttribute('aria-expanded', String(!help.hidden));
-    firstTap = undefined;
+    const native = Boolean(document.fullscreenElement);
+    const fallback = root.classList.contains(immersive);
+    if (!native && !fallback) root.classList.remove(mode);
+    const title = native || fallback ? 'Sair da tela cheia' : 'Tela cheia';
+    button.hidden = false;
+    button.title = title;
+    button.setAttribute('aria-label', title);
+    button.setAttribute('aria-pressed', String(native || fallback));
   }
 
-  async function enterFullscreen() {
-    if (isStandalone() || document.fullscreenElement) return;
-    if (document.fullscreenEnabled && root.requestFullscreen) {
-      root.classList.add(mode);
-      try {
-        await root.requestFullscreen();
-        help.hidden = true;
-        sync();
-        return;
-      } catch {
-        root.classList.remove(mode);
+  async function toggleFullscreen() {
+    if (switching) return;
+    switching = true;
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else if (root.classList.contains(immersive)) {
+        root.classList.remove(immersive);
+      } else {
+        root.classList.add(mode);
+        if (document.fullscreenEnabled && root.requestFullscreen) {
+          try {
+            await root.requestFullscreen();
+            return;
+          } catch {
+            // Use the available viewport when native fullscreen is unavailable.
+          }
+        }
+        root.classList.add(immersive);
       }
+    } catch {
+      // Native fullscreen may already have changed while the request was pending.
+    } finally {
+      switching = false;
+      help.hidden = true;
+      sync();
     }
-    help.hidden = !help.hidden;
-    sync();
   }
 
-  button.addEventListener('click', enterFullscreen);
+  button.addEventListener('click', () => {
+    clearTap();
+    void toggleFullscreen();
+  });
+  window.addEventListener('pointerdown', event => {
+    released = undefined;
+    if (!event.isPrimary || event.button !== 0) {
+      pointer = undefined;
+      clearTap();
+      return;
+    }
+    pointer = {id: event.pointerId, type: event.pointerType, x: event.clientX, y: event.clientY, time: performance.now(), moved: false};
+  }, true);
+  window.addEventListener('pointermove', event => {
+    if (pointer?.id !== event.pointerId) return;
+    if (Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y) > 12) {
+      pointer.moved = true;
+      clearTap();
+    }
+  }, true);
+  window.addEventListener('pointerup', event => {
+    if (pointer?.id !== event.pointerId) return;
+    released = pointer;
+    pointer = undefined;
+  }, true);
+  function cancelGesture() {
+    pointer = released = undefined;
+    clearTap();
+  }
+  window.addEventListener('pointercancel', cancelGesture, true);
+  window.addEventListener('scroll', cancelGesture, {capture: true, passive: true});
+  window.addEventListener('blur', cancelGesture);
+  matchMedia('(orientation: portrait)').addEventListener('change', cancelGesture);
+
   window.addEventListener('click', event => {
+    if (!event.isTrusted || !event.detail || !(event.target instanceof Element)) return;
     const target = event.target;
-    if (!event.detail || isStandalone() || target.closest('button, a, input, label, select, textarea, dialog, [role="button"]') ||
-        (!target.closest('#catalogo') && !root.classList.contains(mode))) {
-      firstTap = undefined;
-      return;
-    }
+    const card = target.closest('#catalogo button.tile');
+    const clickPointer = released;
+    released = undefined;
     const now = performance.now();
-    if (!firstTap || now - firstTap.time > 350 || Math.hypot(event.clientX - firstTap.x, event.clientY - firstTap.y) > 30) {
-      firstTap = {time:now, x:event.clientX, y:event.clientY};
+    if (target.closest('dialog, .emc-studio') ||
+        (clickPointer && (clickPointer.moved || now - clickPointer.time > 550))) {
+      clearTap();
       return;
     }
-    firstTap = undefined;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-    else void enterFullscreen();
+    const nearby = firstTap && now - firstTap.time <= tapInterval &&
+      firstTap.type === clickPointer?.type &&
+      Math.hypot(event.clientX - firstTap.x, event.clientY - firstTap.y) <= 36;
+    if (nearby) {
+      clearTap();
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      void toggleFullscreen();
+      return;
+    }
+
+    if (!card && target.closest(interactive)) {
+      clearTap();
+      return;
+    }
+    clearTap(true);
+    if (card) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+    firstTap = {time: now, x: event.clientX, y: event.clientY, type: clickPointer?.type, card};
+    timer = setTimeout(() => clearTap(true), tapInterval);
   }, true);
 
-  document.addEventListener('fullscreenchange', sync);
-  standalone.addEventListener('change', sync);
+  document.addEventListener('fullscreenchange', () => {
+    cancelGesture();
+    sync();
+  });
   sync();
 })();
 </script>
