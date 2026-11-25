@@ -4049,7 +4049,7 @@ const bindSearch=(field,tiles,emptyState,key,query=value=>value)=>{
     const term=query(field.value.trim());
     let found=false;
     for(const [tile,value] of indexed){
-      const match=value.includes(term);
+      const match=value.includes(term) && (window.emcModelSelection?.includes(tile) ?? true);
       tile.hidden=!match;
       found ||= match;
     }
@@ -4173,7 +4173,30 @@ window.emcAddDimensions = function(n, model, camera, container, bar, footprint) 
 const ids=['cama2m',...Array.from({length:25},(_,i)=>i+1)];let navigation=0;
 const get=id=>document.getElementById(id),prefix=n=>n===1?'':n==='cama2m'?'mcama2m':'m'+n;
 function jump(from,to){const token=++navigation;document.body.classList.add('emc-navegando');if(from===1){get('apresentacao').style.display='none';get('abrirCatalogos').click()}else get(prefix(from)+'back3').click();get(to==='cama2m'?'abrirCama2m':'abrirModelo'+to).click();const started=Date.now();function advance(){if(token!==navigation)return;const page=to===1?get('apresentacao'):get(prefix(to)+'cover');if(to===1?page.style.display==='flex':!page.hidden){get(to===1?'iniciarPasseio':prefix(to)+'start').click();document.body.classList.remove('emc-navegando');return}if(Date.now()-started<45000)setTimeout(advance,100);else document.body.classList.remove('emc-navegando')}setTimeout(advance,60)}
-for(let i=0;i<ids.length;i++){const n=ids[i],target=get(n===1?'viewer':prefix(n)+'view');if(!target)continue;target.querySelectorAll('.emc-switch').forEach(el=>el.remove());for(const delta of [-1,1]){const button=document.createElement('button');button.type='button';button.className='emc-switch '+(delta<0?'left':'right');button.textContent=delta<0?'‹':'›';button.title=delta<0?'Brinquedo anterior':'Próximo brinquedo';button.setAttribute('aria-label',button.title);button.onclick=()=>jump(n,ids[(i+delta+ids.length)%ids.length]);target.appendChild(button)}}
+const cardFor = id => get(id==='cama2m'?'abrirCama2m':'abrirModelo'+id);
+for (const n of ids) {
+  const target = get(n===1?'viewer':prefix(n)+'view');
+  if (!target) continue;
+  target.querySelectorAll('.emc-switch').forEach(el => el.remove());
+  for (const step of [-1,1]) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'emc-switch ' + (step < 0 ? 'left' : 'right');
+    button.textContent = step < 0 ? '‹' : '›';
+    button.title = step < 0 ? 'Brinquedo anterior' : 'Próximo brinquedo';
+    button.setAttribute('aria-label', button.title);
+    button.onclick = () => {
+      const card = window.emcModelSelection.neighbor(cardFor(n), step);
+      if (!card) return;
+      const id = card.id === 'abrirCama2m' ? 'cama2m' : Number(card.id.slice('abrirModelo'.length));
+      jump(n, id);
+    };
+    document.addEventListener('emc-selection-ready', () => {
+      window.emcModelSelection.trackArrow(button, () => cardFor(n), step)();
+    }, {once:true});
+    target.append(button);
+  }
+}
 })();
 </script><script>document.addEventListener('emc-catalog-ready',()=>{const pending=[...document.querySelectorAll('img[data-emc-src]')];if(!('IntersectionObserver'in window)){for(const img of pending)img.src=img.dataset.emcSrc;return}const observer=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting){const img=entry.target;if(!img.getAttribute('src'))img.src=img.dataset.emcSrc;observer.unobserve(img)}},{rootMargin:'120px'});for(const img of pending){img.decoding='async';observer.observe(img)}},{once:true});</script><section id="tramp1Viewer" class="tramp-viewer" hidden aria-label="Passeio 360° do Trampolim Modelo 1">
   <div id="tramp1Canvas"></div>
@@ -4288,7 +4311,8 @@ const modal = document.getElementById('loteModal');
 const open = document.getElementById('loteOpen3D');
 
 function addModelArrows(container, currentModel, navigate) {
-  return [-1, 1].map(step => {
+  const currentCard = () => cards.find(card => card.dataset.lote === currentModel());
+  for (const step of [-1, 1]) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'emc-switch ' + (step < 0 ? 'left' : 'right');
@@ -4296,22 +4320,21 @@ function addModelArrows(container, currentModel, navigate) {
     button.title = step < 0 ? 'Trampolim anterior' : 'Próximo trampolim';
     button.setAttribute('aria-label', button.title);
     button.onclick = () => {
-      const index = cards.findIndex(card => card.dataset.lote === currentModel());
-      if (index < 0) return;
-      navigate(cards[(index + step + cards.length) % cards.length]);
+      const next = window.emcModelSelection.neighbor(currentCard(), step);
+      if (next) navigate(next);
     };
+    document.addEventListener('emc-selection-ready', () => {
+      const update = window.emcModelSelection.trackArrow(button, currentCard, step);
+      update();
+      if (container === modal) {
+        new MutationObserver(update).observe(open, { attributes: true, attributeFilter: ['data-model'] });
+      }
+    }, {once:true});
     container.appendChild(button);
-    return button;
-  });
+  }
 }
 
-const presentationArrows = addModelArrows(modal, () => open.dataset.model, card => card.click());
-function syncPresentationArrows() {
-  const hasTrampoline = cards.some(card => card.dataset.lote === open.dataset.model);
-  for (const button of presentationArrows) button.hidden = !hasTrampoline;
-}
-new MutationObserver(syncPresentationArrows).observe(open, { attributes: true, attributeFilter: ['data-model'] });
-syncPresentationArrows();
+addModelArrows(modal, () => open.dataset.model, card => card.click());
 
 window.emcLightenTrampolineGray = async function lightenTrampolineGray(model, modelId) {
   if (modelId === 'tramp1') {
@@ -4845,7 +4868,7 @@ img, #catalogo .tile {
     suppressClick = false;
     if (event.button !== 0) return;
     const card = event.target.closest(cards);
-    if (!card) return;
+    if (!card || card.closest('[data-emc-selecting]')) return;
     const primary = card.querySelector('.visual img:not(.emc-preview-alternate)');
     const active = card.querySelector('.emc-preview-visible') || primary;
     const src = active?.currentSrc || active?.getAttribute('src') || primary?.dataset.emcSrc;
@@ -5234,4 +5257,215 @@ html:fullscreen #viewer .controls {
   margin: 0 auto;
 }
 </style>
+<style>
+#catalogo .emc-selection-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+#catalogo .emc-selection-bar [hidden] { display: none; }
+#catalogo .emc-selection-bar button {
+  padding: 9px 14px;
+  border: 1px solid #94eff3;
+  border-radius: 8px;
+  background: #243946;
+  color: #fff;
+  font: 700 14px system-ui, sans-serif;
+  cursor: pointer;
+}
+#catalogo .emc-selection-bar button:disabled { opacity: .65; cursor: default; }
+#catalogo .emc-selection-bar .emc-selection-apply { background: #bef320; color: #162633; }
+#catalogo .emc-selection-bar [role="status"] { color: #fff; font-size: 14px; }
+#catalogo [data-emc-selecting] .grid > .tile { position: relative; }
+#catalogo [data-emc-selecting] .grid > .tile[aria-pressed="true"] {
+  outline: 3px solid #bef320;
+  outline-offset: -3px;
+}
+#catalogo .emc-selection-number {
+  display: none;
+  position: absolute;
+  z-index: 2;
+  inset: 6px auto auto 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #243946;
+  color: #fff;
+  font: 700 13px system-ui, sans-serif;
+  pointer-events: none;
+}
+#catalogo [data-emc-selecting] .emc-selection-number { display: block; }
+#catalogo [data-emc-selecting] [aria-pressed="true"] .emc-selection-number {
+  background: #bef320;
+  color: #162633;
+}
+#catalogo [data-emc-selecting] [aria-pressed="true"] .emc-selection-number::after { content: " ✓"; }
+html body .emc-switch[hidden] { display: none !important; }
+#extDetail .emc-switch, .emc-model-presentation > .emc-selection-arrow { position: fixed; }
+</style>
+<script>
+(() => {
+  const get = id => document.getElementById(id);
+  const selectionByCard = new Map();
+  const arrowUpdates = [];
+
+  function neighbor(card, step, selectedOnly = false) {
+    const selection = selectionByCard.get(card);
+    if (!selection || (selectedOnly && !selection.applied)) return null;
+    const cards = selection.applied ? selection.cards.filter(item => selection.marked.has(item)) : selection.cards;
+    const index = cards.indexOf(card);
+    if (index < 0 || cards.length < 2) return null;
+    return cards[(index + step + cards.length) % cards.length];
+  }
+
+  window.emcModelSelection = {
+    neighbor,
+    includes(card) {
+      const selection = selectionByCard.get(card);
+      return !selection?.applied || selection.marked.has(card);
+    },
+    trackArrow(button, currentCard, step, selectedOnly = false) {
+      const update = () => {
+        button.hidden = !neighbor(currentCard(), step, selectedOnly);
+        if (button.hidden) button.style.setProperty('display', 'none', 'important');
+        else button.style.removeProperty('display');
+      };
+      arrowUpdates.push(update);
+      return update;
+    }
+  };
+
+  for (const [sectionId, searchId] of [
+    ['listaPlay', 'playSearch'], ['listaTramp', 'trampSearch'], ['listaExterna', 'extSearch']
+  ]) {
+    const section = get(sectionId);
+    const search = get(searchId);
+    const grid = section.querySelector('.grid');
+    const cards = [...grid.querySelectorAll(':scope > .tile')];
+    const selection = { cards, marked: new Set(), applied: false };
+    let editing = false;
+    const bar = document.createElement('div');
+    bar.className = 'emc-selection-bar';
+    bar.innerHTML = '<button type="button">Selecionar modelos</button>' +
+      '<button type="button" class="emc-selection-apply" hidden>Ver selecionados</button>' +
+      '<button type="button" hidden>Ver todos</button><span role="status"></span>';
+    grid.before(bar);
+    const [edit, apply, reset, status] = bar.children;
+
+    function update() {
+      section.toggleAttribute('data-emc-selecting', editing);
+      edit.textContent = editing ? 'Cancelar seleção' : selection.applied ? 'Editar seleção' : 'Selecionar modelos';
+      apply.hidden = !editing;
+      apply.disabled = !selection.marked.size;
+      reset.hidden = editing || !selection.applied;
+      const count = selection.marked.size;
+      status.textContent = editing || selection.applied
+        ? (count === 1 ? '1 modelo selecionado' : count + ' modelos selecionados')
+        : '';
+      for (const [index, card] of cards.entries()) {
+        if (editing) {
+          card.setAttribute('aria-pressed', String(selection.marked.has(card)));
+          card.setAttribute('aria-label', index + ' · ' + card.querySelector('img').alt);
+        } else {
+          card.removeAttribute('aria-pressed');
+          card.removeAttribute('aria-label');
+        }
+      }
+    }
+
+    function refreshList() {
+      update();
+      search.value = '';
+      search.dispatchEvent(new Event('input'));
+      arrowUpdates.forEach(updateArrow => updateArrow());
+    }
+
+    let original = new Set();
+    edit.onclick = () => {
+      if (editing) {
+        selection.marked = original;
+        selection.applied = original.size > 0;
+      } else {
+        original = new Set(selection.marked);
+        selection.applied = false;
+      }
+      editing = !editing;
+      refreshList();
+    };
+    apply.onclick = () => {
+      if (!selection.marked.size) return;
+      editing = false;
+      selection.applied = true;
+      refreshList();
+      edit.focus();
+    };
+    reset.onclick = () => {
+      selection.marked.clear();
+      selection.applied = false;
+      refreshList();
+      edit.focus();
+    };
+    for (const [index, card] of cards.entries()) {
+      selectionByCard.set(card, selection);
+      const number = document.createElement('span');
+      number.className = 'emc-selection-number';
+      number.setAttribute('aria-hidden', 'true');
+      number.textContent = index;
+      card.append(number);
+    }
+    grid.addEventListener('click', event => {
+      if (!editing) return;
+      const card = event.target.closest('.tile');
+      if (!selectionByCard.has(card)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (!selection.marked.delete(card)) selection.marked.add(card);
+      update();
+    }, true);
+  }
+
+  function presentationArrows(container, currentCard, openCard) {
+    for (const step of [-1, 1]) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'emc-switch emc-selection-arrow ' + (step < 0 ? 'left' : 'right');
+      button.textContent = step < 0 ? '‹' : '›';
+      button.setAttribute('aria-label', step < 0 ? 'Modelo anterior' : 'Próximo modelo');
+      button.onclick = () => {
+        const next = neighbor(currentCard(), step, true);
+        if (next) openCard(next);
+      };
+      container.append(button);
+      window.emcModelSelection.trackArrow(button, currentCard, step, true)();
+    }
+  }
+
+  for (const card of document.querySelectorAll('#listaPlay .grid > .tile')) {
+    const number = card.id.replace('abrirModelo', '');
+    const prefix = card.id === 'abrirCama2m' ? 'mcama2m' : 'm' + number;
+    const cover = get(number === '1' ? 'apresentacao' : prefix + 'cover');
+    const back = get(number === '1' ? 'm1VoltarCatalogo' : prefix + 'back2');
+    if (!cover || !back) continue;
+    presentationArrows(cover, () => card, next => {
+      back.click();
+      next.click();
+    });
+  }
+
+  const detail = get('extDetail');
+  const extCard = () => detail.dataset.ext
+    ? detail.parentElement.querySelector('.ext-card[data-ext="' + detail.dataset.ext + '"]')
+    : null;
+  presentationArrows(detail, extCard, next => next.click());
+  presentationArrows(get('extViewer'), extCard, next => {
+    get('extViewerBack').click();
+    next.click();
+  });
+  new MutationObserver(() => arrowUpdates.forEach(update => update()))
+    .observe(detail, { attributes: true, attributeFilter: ['data-ext'] });
+
+  document.dispatchEvent(new Event('emc-selection-ready'));
+})();
+</script>
 </body></html>
