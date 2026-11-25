@@ -4267,7 +4267,7 @@ for(let i=0;i<ids.length;i++){const n=ids[i],target=get(n===1?'viewer':prefix(n)
 </style>
 <script id="mtramp1data" type="application/octet-stream" data-salt="ZL+xRNipC26Uely/QwiJRQ==" data-iv="j8bQXlSrh1cKOGKI" data-path="assets/mtramp1data.bin"></script>
 <script id="mtramp2data" type="application/octet-stream" data-salt="hUxinNahF4UnSG59lilT+A==" data-iv="/eeu0VlApHc3jN2V" data-path="assets/mtramp2data.bin?v=fea866572e50"></script>
-<script id="mtramp3data" type="application/octet-stream" data-salt="byv6ruiDG5E3pN1tshtMww==" data-iv="MgG8zMCrPuJt4Sdu" data-path="assets/mtramp3data.bin"></script>
+<script id="mtramp3data" type="application/octet-stream" data-salt="+VjwyIuKn1jFzrGaMNeVrA==" data-iv="UNHcMkzcVGJRfGVm" data-path="assets/mtramp3data-v2.bin"></script>
 <script id="mtramp4data" type="application/octet-stream" data-salt="QiemxjkhSUp1H6k1f2SDkg==" data-iv="zIsedEnL1BB6+yPt" data-path="assets/mtramp4data.bin?v=a0bfbd0d4460"></script>
 <script id="mtramp5data" type="application/octet-stream" data-salt="AaAq0Vtz27jrSKY52gRW4w==" data-iv="ssvlTA9u3nhj33N3" data-path="assets/mtramp5data.bin?v=0597c3d24eac"></script>
 <script id="mtramp6data" type="application/octet-stream" data-salt="6adi2rVcxPiwbtQYFJ+rVg==" data-iv="e1wVmUm1/B1sN7Ws" data-path="assets/mtramp6data.bin?v=0c23f852fcf3"></script>
@@ -4364,16 +4364,6 @@ window.emcLightenTrampolineGray = async function lightenTrampolineGray(model, mo
       adjusted.add(material);
       const name = material.name.replace(/\.\d+$/, '');
       const carpet = name === 'Suede_Dark_Gray' || (modelId === 'tramp2' && name === 'Color_M06');
-      if (modelId === 'tramp3' && !carpet && !material.map && !material.transparent &&
-          material.opacity === 1 && material.metalness < 0.25) {
-        const color = material.color.getHSL({});
-        if (color.s >= 0.25) {
-          const saturation = Math.min(1, color.s * 1.25);
-          const lightness = color.l > 0.38 ? 0.38 + (color.l - 0.38) * 0.82 : color.l;
-          material.color.setHSL(color.h, saturation, lightness);
-          material.roughness = Math.min(material.roughness, 0.52);
-        }
-      }
       if (!carpet || !material.map) continue;
       if (referenceImage && material.map) {
         const originalMap = material.map;
