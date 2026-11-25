@@ -4723,6 +4723,16 @@ for (const modelId of ['tramp1', 'tramp2', 'tramp3', 'tramp4', 'tramp5', 'tramp6
   transition: opacity 600ms ease-in-out;
 }
 #catalogo .visual img.emc-preview-alternate.emc-preview-visible { opacity: 1; }
+#catalogo #abrirModelo1 .visual {
+  background: #fff;
+  overflow: hidden;
+}
+#catalogo #abrirModelo1 .visual img {
+  transform: translateX(5%) scale(1.26);
+}
+#catalogo #abrirModelo1 .visual img.emc-preview-alternate {
+  transform: translateX(13%) scale(1.26);
+}
 @media (prefers-reduced-motion: reduce) {
   #catalogo .visual img.emc-preview-alternate { transition: none; }
 }
