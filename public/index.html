@@ -5333,7 +5333,15 @@ html:fullscreen #viewer .controls {
     const uv = Float32Array.from(coordinates.flatMap(([x, y]) => [(x - left) / width, (y - bottom) / height]));
     face.geometry.setAttribute('uv', new T.gt(uv, 2));
     const oldMaterial = face.material;
-    face.material = new T.dn({name: 'Placa EMC', map: texture, toneMapped: false});
+    face.material = new T.dn({
+      name: 'Placa EMC',
+      map: texture,
+      toneMapped: false,
+      // Lift the logo in the depth buffer without moving the sign geometry.
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+      polygonOffsetUnits: -4
+    });
     oldMaterial.dispose();
   }
 
