@@ -4364,6 +4364,16 @@ window.emcLightenTrampolineGray = async function lightenTrampolineGray(model, mo
       adjusted.add(material);
       const name = material.name.replace(/\.\d+$/, '');
       const carpet = name === 'Suede_Dark_Gray' || (modelId === 'tramp2' && name === 'Color_M06');
+      if (modelId === 'tramp3' && !carpet && !material.map && !material.transparent &&
+          material.opacity === 1 && material.metalness < 0.25) {
+        const color = material.color.getHSL({});
+        if (color.s >= 0.25) {
+          const saturation = Math.min(1, color.s * 1.25);
+          const lightness = color.l > 0.38 ? 0.38 + (color.l - 0.38) * 0.82 : color.l;
+          material.color.setHSL(color.h, saturation, lightness);
+          material.roughness = Math.min(material.roughness, 0.52);
+        }
+      }
       if (!carpet || !material.map) continue;
       if (referenceImage && material.map) {
         const originalMap = material.map;
