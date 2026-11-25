@@ -4469,13 +4469,13 @@ for (const n of ids) {
 <script id="mtramp6data" type="application/octet-stream" data-salt="6adi2rVcxPiwbtQYFJ+rVg==" data-iv="e1wVmUm1/B1sN7Ws" data-path="assets/mtramp6data.bin?v=0c23f852fcf3"></script>
 <script id="mtramp7data" type="application/octet-stream" data-salt="FkOM8n3YXiLtt22UnIeJUw==" data-iv="poaiaYxaUaJnBODf" data-path="assets/mtramp7data.bin?v=552228ef3c51"></script>
 <style>
-:is(.tramp-viewer,#loteModal) > .emc-switch{display:grid;place-items:center;min-height:0;margin:0;padding:0;border:2px solid #fff;border-radius:50%;background:rgba(23,38,50,.82);color:#fff;font-size:25px;line-height:1}
+:is(.tramp-viewer,#loteModal,#extDetail) > .emc-switch{display:grid;place-items:center;min-height:0;margin:0;padding:0;border:2px solid #fff;border-radius:50%;background:rgba(23,38,50,.82);color:#fff;font-size:25px;line-height:1}
 #loteModal > .emc-switch{position:fixed}
-:is(.tramp-viewer,#loteModal) > .emc-switch[hidden]{display:none}
+:is(.tramp-viewer,#loteModal,#extDetail) > .emc-switch[hidden]{display:none}
 :is(.tramp-viewer,#loteModal):fullscreen > .emc-switch,
-:fullscreen :is(.tramp-viewer,#loteModal) > .emc-switch{display:grid!important}
+:fullscreen :is(.tramp-viewer,#loteModal,#extDetail) > .emc-switch{display:grid!important}
 :fullscreen #loteModal > .emc-switch[hidden]{display:none!important}
-@media(max-width:600px){:is(.tramp-viewer,#loteModal) > .emc-switch{font-size:20px}}
+@media(max-width:600px){:is(.tramp-viewer,#loteModal,#extDetail) > .emc-switch{font-size:20px}}
 </style>
 <script>
 (() => {
@@ -5247,6 +5247,9 @@ html:fullscreen #viewer .controls {
   const back = get('extViewerBack');
   const expand = get('extViewerExpand');
   const expandedClass = 'emc-exterior-expanded';
+  for (const card of document.querySelectorAll('#extGrid > .ext-card')) {
+    card.toggleAttribute('data-has-3d', Boolean(models[card.dataset.ext]));
+  }
   let ownsFullscreen = false;
   let active;
   let pending;
@@ -5380,20 +5383,23 @@ html:fullscreen #viewer .controls {
   };
   document.addEventListener('fullscreenchange', syncExpand);
 
-  function close() {
+  function close(keepExpanded = false) {
     viewer.hidden = true;
     active?.renderer.setAnimationLoop(null);
     viewer.querySelector('.emc-studio:not([hidden]) .studio-head button')?.click();
-    viewer.classList.remove(expandedClass);
-    if (ownsFullscreen && document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
+    if (!keepExpanded) {
+      viewer.classList.remove(expandedClass);
+      if (ownsFullscreen && document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+      ownsFullscreen = false;
     }
-    ownsFullscreen = false;
     syncExpand();
     open.focus();
   }
 
-  back.onclick = close;
+  back.onclick = () => close();
+  viewer.addEventListener('emc-switch-exterior', () => close(true));
   get('extViewerCatalog').onclick = () => {
     const card = document.querySelector('.ext-card[data-ext="' + detail.dataset.ext + '"]');
     close();
@@ -5556,10 +5562,12 @@ html body .emc-switch[hidden] { display: none !important; }
   const selectionByCard = new Map();
   const arrowUpdates = [];
 
-  function neighbor(card, step, selectedOnly = false) {
+  function neighbor(card, step, selectedOnly = false, eligible) {
     const selection = selectionByCard.get(card);
     if (!selection || (selectedOnly && !selection.applied)) return null;
-    const cards = selection.applied ? selection.cards.filter(item => selection.marked.has(item)) : selection.cards;
+    const cards = selection.cards.filter(item =>
+      (!selection.applied || selection.marked.has(item)) && (!eligible || eligible(item))
+    );
     const index = cards.indexOf(card);
     if (index < 0 || cards.length < 2) return null;
     return cards[(index + step + cards.length) % cards.length];
@@ -5571,9 +5579,9 @@ html body .emc-switch[hidden] { display: none !important; }
       const selection = selectionByCard.get(card);
       return !selection?.applied || selection.marked.has(card);
     },
-    trackArrow(button, currentCard, step, selectedOnly = false) {
+    trackArrow(button, currentCard, step, selectedOnly = false, eligible) {
       const update = () => {
-        button.hidden = !neighbor(currentCard(), step, selectedOnly);
+        button.hidden = !neighbor(currentCard(), step, selectedOnly, eligible);
         if (button.hidden) button.style.setProperty('display', 'none', 'important');
         else button.style.removeProperty('display');
       };
@@ -5671,7 +5679,7 @@ html body .emc-switch[hidden] { display: none !important; }
     }, true);
   }
 
-  function presentationArrows(container, currentCard, openCard) {
+  function presentationArrows(container, currentCard, openCard, selectedOnly = true, eligible) {
     for (const step of [-1, 1]) {
       const button = document.createElement('button');
       button.type = 'button';
@@ -5679,11 +5687,11 @@ html body .emc-switch[hidden] { display: none !important; }
       button.textContent = step < 0 ? '‹' : '›';
       button.setAttribute('aria-label', step < 0 ? 'Modelo anterior' : 'Próximo modelo');
       button.onclick = () => {
-        const next = neighbor(currentCard(), step, true);
+        const next = neighbor(currentCard(), step, selectedOnly, eligible);
         if (next) openCard(next);
       };
       container.append(button);
-      window.emcModelSelection.trackArrow(button, currentCard, step, true)();
+      window.emcModelSelection.trackArrow(button, currentCard, step, selectedOnly, eligible)();
     }
   }
 
@@ -5703,11 +5711,16 @@ html body .emc-switch[hidden] { display: none !important; }
   const extCard = () => detail.dataset.ext
     ? detail.parentElement.querySelector('.ext-card[data-ext="' + detail.dataset.ext + '"]')
     : null;
-  presentationArrows(detail, extCard, next => next.click());
-  presentationArrows(get('extViewer'), extCard, next => {
-    get('extViewerBack').click();
+  presentationArrows(detail, extCard, next => next.click(), false);
+  const extViewer = get('extViewer');
+  const extOpen3D = get('extOpen3D');
+  presentationArrows(extViewer, extCard, next => {
+    extViewer.dispatchEvent(new Event('emc-switch-exterior'));
     next.click();
-  });
+    queueMicrotask(() => {
+      if (detail.dataset.ext === next.dataset.ext && !extOpen3D.hidden) extOpen3D.click();
+    });
+  }, false, card => card.hasAttribute('data-has-3d'));
   new MutationObserver(() => arrowUpdates.forEach(update => update()))
     .observe(detail, { attributes: true, attributeFilter: ['data-ext'] });
 
