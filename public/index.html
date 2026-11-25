@@ -4050,7 +4050,7 @@ void main() {
     document.addEventListener('DOMContentLoaded', () => resume(saved), {once: true});
   }
 })();
-</script><script>(()=>{const sizes={1:[3,2.5,4],2:[4,2.5,2.2],3:[4,2.5,2.5],4:[5,2.5,2.2],5:[5,2.5,2.5],6:[5.2,2.5,2.1],7:[5.2,2.5,2.1],8:[5.2,2.5,2.1],9:[6,2.5,2.1],10:[6,2.5,2.5],11:[6,2.5,2.2],12:[6,2.5,2.5],13:[6,2.5,3],14:[6,2.5,2.2],15:[6,2.5,2.2],16:[6,2.5,2.2],17:[7,2.5,2.1],18:[7,2.5,2.2],19:[8,4,3],20:[8,3,3],21:[8,4,3],22:[10,2.5,6],23:[11,3,3],24:[12,3,3.3],25:[6,3,3],tramp1:[13.5,3.5,3],tramp2:[11,3,3],tramp3:[8,4,3],tramp4:[12,4,3.6],tramp5:[11,3,3],tramp6:[10.5,3.9,5.7],tramp7:[11,3,3],cama2m:[2,2,2]};window.emcAddDimensions=(num,object,camera,container,bar,footprint)=>{if(!object||!object.parent||!bar||bar.querySelector('[data-cotas]'))return;const T=window.__emc3d,box=new T.qt().setFromObject(object),mn=box.min,mx=box.max,dx=mx.x-mn.x,dz=mx.z-mn.z,dy=mx.y-mn.y;if(!dx||!dy||!dz)return;const d=footprint||sizes[num];if(!d)return;const widthX=Math.abs(Math.log((dx/dz)/(d[0]/d[2])))<=Math.abs(Math.log((dx/dz)/(d[2]/d[0]))),horizontalX=widthX?d[0]:d[2],horizontalZ=widthX?d[2]:d[0],extent=Math.max(dx,dy,dz),gap=extent*.10,mark=extent*.012;const P=(x,y,z)=>new T.L(x,y,z),axes=[[P(mn.x,mn.y-gap,mx.z+gap),P(mx.x,mn.y-gap,mx.z+gap),horizontalX,P(0,mark,0)],[P(mx.x+gap,mn.y-gap,mn.z),P(mx.x+gap,mn.y-gap,mx.z),horizontalZ,P(0,mark,0)],[P(mn.x-gap,mn.y,mx.z+gap),P(mn.x-gap,mx.y,mx.z+gap),d[1],P(mark,0,0)]];const group=new T.ln();group.visible=false;object.parent.add(group);const mat=new T.os({color:0x303030,transparent:true,opacity:.78,depthTest:true,depthWrite:false});function line(a,b){const geometry=new T.Yt().setFromPoints([a,b]);const segment=new T.Mi(geometry,mat);segment.frustumCulled=false;group.add(segment)}const labels=[];for(const [a,b,value,tick] of axes){if(value==null)continue;line(a,b);line(a.clone().sub(tick),a.clone().add(tick));line(b.clone().sub(tick),b.clone().add(tick));const canvas=document.createElement('canvas');canvas.width=384;canvas.height=128;const ctx=canvas.getContext('2d');ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='600 58px sans-serif';ctx.lineWidth=9;ctx.lineJoin='round';ctx.strokeStyle='rgba(255,255,255,.94)';ctx.fillStyle='#222';const text=String(value).replace('.',',')+' m';ctx.strokeText(text,192,64);ctx.fillText(text,192,64);const texture=new T.bt(canvas);texture.needsUpdate=true;const material=new T.dn({map:texture,transparent:true,depthTest:true,depthWrite:false,side:2});const mesh=new T.ot(new T.Ks(1,1),material);mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.position.y+=extent*.025;mesh.scale.set(extent*.25,extent*.083,1);mesh.frustumCulled=false;group.add(mesh);labels.push(mesh)}const button=document.createElement('button');button.type='button';button.dataset.cotas='';button.textContent='Cotas';button.setAttribute('aria-pressed','false');bar.appendChild(button);button.onclick=()=>{group.visible=!group.visible;button.textContent=group.visible?'Ocultar cotas':'Cotas';button.setAttribute('aria-pressed',String(group.visible))};function orient(){requestAnimationFrame(orient);if(!group.visible||!container.isConnected)return;for(const label of labels)label.quaternion.copy(camera.quaternion)}orient()}})();</script><script>window.emcGetModel = async function(number) {
+</script><script>(()=>{const sizes={1:[3,2.5,4],2:[4,2.5,2.2],3:[4,2.5,2.5],4:[5,2.5,2.2],5:[5,2.5,2.5],6:[5.2,2.5,2.1],7:[5.2,2.5,2.1],8:[5.2,2.5,2.1],9:[6,2.5,2.1],10:[6,2.5,2.5],11:[6,2.5,2.2],12:[6,2.5,2.5],13:[6,2.5,3],14:[6,2.5,2.2],15:[6,2.5,2.2],16:[6,2.5,2.2],17:[7,2.5,2.1],18:[7,2.5,2.2],19:[8,4,3],20:[8,3,3],21:[8,4,3],22:[10,2.5,6],23:[11,3,3],24:[12,3,3.3],25:[6,3,3],tramp1:[13.5,3.5,3],tramp2:[11,3,3],tramp3:[8,4,3],tramp4:[12,4,3.6],tramp5:[11,3,3],tramp6:[10.5,3.9,5.7],tramp7:[11,3,3],cama2m:[2,2,2]};window.emcAddDimensions=(num,object,camera,container,bar,footprint)=>{if(!object||!object.parent||!bar||bar.querySelector('[data-cotas]'))return;const T=window.__emc3d,box=new T.qt().setFromObject(object),mn=box.min,mx=box.max,dx=mx.x-mn.x,dz=mx.z-mn.z,dy=mx.y-mn.y;if(!dx||!dy||!dz)return;const d=footprint||sizes[num];if(!d)return;const widthX=Math.abs(Math.log((dx/dz)/(d[0]/d[2])))<=Math.abs(Math.log((dx/dz)/(d[2]/d[0]))),horizontalX=widthX?d[0]:d[2],horizontalZ=widthX?d[2]:d[0],extent=Math.max(dx,dy,dz),gap=extent*.10,mark=extent*.012;const P=(x,y,z)=>new T.L(x,y,z),axes=[[P(mn.x,mn.y-gap,mx.z+gap),P(mx.x,mn.y-gap,mx.z+gap),horizontalX,P(0,mark,0)],[P(mx.x+gap,mn.y-gap,mn.z),P(mx.x+gap,mn.y-gap,mx.z),horizontalZ,P(0,mark,0)],[P(mn.x-gap,mn.y,mx.z+gap),P(mn.x-gap,mx.y,mx.z+gap),d[1],P(mark,0,0)]];const group=new T.ln();group.visible=false;object.parent.add(group);const mat=new T.os({color:0x303030,transparent:true,opacity:.78,depthTest:true,depthWrite:false});function line(a,b){const geometry=new T.Yt().setFromPoints([a,b]);const segment=new T.Mi(geometry,mat);segment.frustumCulled=false;group.add(segment)}const labels=[];for(const [a,b,value,tick] of axes){if(value==null)continue;line(a,b);line(a.clone().sub(tick),a.clone().add(tick));line(b.clone().sub(tick),b.clone().add(tick));const canvas=document.createElement('canvas');canvas.width=384;canvas.height=128;const ctx=canvas.getContext('2d');ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='600 58px sans-serif';ctx.lineWidth=9;ctx.lineJoin='round';ctx.strokeStyle='rgba(255,255,255,.94)';ctx.fillStyle='#222';const text=String(value).replace('.',',')+' m';ctx.strokeText(text,192,64);ctx.fillText(text,192,64);const texture=new T.bt(canvas);texture.needsUpdate=true;const material=new T.dn({map:texture,transparent:true,depthTest:true,depthWrite:false,side:2});const mesh=new T.ot(new T.Ks(1,1),material);mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.position.y+=extent*.025;mesh.scale.set(extent*.25,extent*.083,1);mesh.frustumCulled=false;group.add(mesh);labels.push(mesh)}const button=document.createElement('button');button.type='button';button.dataset.cotas='';button.textContent='Cotas';button.setAttribute('aria-pressed','false');bar.appendChild(button);button.onclick=()=>{group.visible=!group.visible;button.textContent=group.visible?'Ocultar cotas':'Cotas';button.setAttribute('aria-pressed',String(group.visible))};let orientationFrame;function orient(){orientationFrame=requestAnimationFrame(orient);if(!group.visible||!container.isConnected)return;for(const label of labels)label.quaternion.copy(camera.quaternion)}orient();return ()=>{cancelAnimationFrame(orientationFrame);button.remove()}}})();</script><script>window.emcGetModel = async function(number) {
   const element = document.getElementById('m' + number + 'data');
   const data = await window.emcDecodeModel(element, window.__catalogPassword);
   return (await new window.__emc3d.aa().parseAsync(data, '')).scene;
@@ -4160,13 +4160,15 @@ void main() {
  const fields={};function save(){try{localStorage.setItem(studioScope,JSON.stringify(state));window.dispatchEvent(new CustomEvent('emc-studio-change',{detail:{...state,scope:studioScope}}))}catch(e){}}
  const cameraAngle=()=>controls&&controls.object&&controls.target?Math.atan2(controls.object.position.x-controls.target.x,controls.object.position.z-controls.target.z):0;const initialViewAngle=cameraAngle();
  function updateLight(){const t=state.angle*Math.PI/180-(cameraAngle()-initialViewAngle);light.position.x=center.x+dx*Math.cos(t)-dz*Math.sin(t);light.position.z=center.z+dx*Math.sin(t)+dz*Math.cos(t);light.target.updateMatrixWorld();if(scene.environmentRotation)scene.environmentRotation.y=t}
- if(controls&&controls.addEventListener)controls.addEventListener('change',updateLight);window.addEventListener('emc-studio-change',event=>{if(event.detail?.scope!==studioScope)return;for(const key in state)if(Number.isFinite(event.detail[key]))state[key]=event.detail[key];update(false)});
+ if(controls&&controls.addEventListener)controls.addEventListener('change',updateLight);function syncStudio(event){if(event.detail?.scope!==studioScope)return;for(const key in state)if(Number.isFinite(event.detail[key]))state[key]=event.detail[key];update(false)}
+ window.addEventListener('emc-studio-change',syncStudio);
  function update(saveState=true){updateLight();const r=state.angle*Math.PI/180;sun.style.left=(50+50*Math.sin(r))+'%';sun.style.top=(50-50*Math.cos(r))+'%';light.intensity=lightBase*state.light/100;scene.environmentIntensity=reflectionBase*state.reflect/100;for(const [metal,intensity] of metalReflections)metal.envMapIntensity=intensity*state.reflect/100;if(ambient)ambient.intensity=ambientBase*Math.max(.15,1.8-state.shadow*.016);for(const m of materials){const h=m.hsl;m.mat.color.setHSL(h.h,h.s,Math.min(1,h.l*state[m.key]/100))}for(const k in fields){fields[k].input.value=state[k];fields[k].out.textContent=state[k]+'%'}if(saveState)save()}
  function move(e){const rect=ring.getBoundingClientRect();const x=e.clientX-(rect.left+rect.width/2),y=e.clientY-(rect.top+rect.height/2);if(Math.hypot(x,y)<2)return;state.angle=Math.round(Math.atan2(x,-y)*180/Math.PI);update()}
  ring.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();ring.setPointerCapture(e.pointerId);move(e)});ring.addEventListener('pointermove',e=>{if(ring.hasPointerCapture(e.pointerId)){e.preventDefault();e.stopPropagation();move(e)}});sun.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowDown','ArrowRight','ArrowUp'].includes(e.key)){e.preventDefault();state.angle+=['ArrowLeft','ArrowDown'].includes(e.key)?-5:5;update()}});
  function slider(key,label){const wrap=document.createElement('label');wrap.className='studio-field';const row=document.createElement('span');row.textContent=label;const out=document.createElement('output');row.appendChild(out);const input=document.createElement('input');input.type='range';input.min=key==='light'?0:key==='shadow'?0:40;input.max=key==='shadow'?100:160;input.value=state[key];input.setAttribute('aria-label',label);input.addEventListener('input',()=>{state[key]=Number(input.value);update()});wrap.append(row,input);panel.appendChild(wrap);fields[key]={input,out}}
  slider('light','Intensidade da luz');slider('shadow','Intensidade das sombras');slider('reflect','Reflexos');const sub=document.createElement('strong');sub.textContent='Ajuste de cores';panel.appendChild(sub);const note=document.createElement('p');note.textContent='Clareie ou escureça cada cor';panel.appendChild(note);for(const [k,l] of [['red','Vermelho'],['orange','Laranja'],['yellow','Amarelo'],['green','Verde'],['blue','Azul'],['purple','Roxo']])slider(k,l);
- const reset=document.createElement('button');reset.type='button';reset.className='studio-reset';reset.textContent='Restaurar padrão';reset.onclick=()=>{state={...defaults};update()};panel.appendChild(reset);function show(on){panel.hidden=!on;btn.setAttribute('aria-expanded',String(on))}btn.onclick=()=>show(panel.hidden);close.onclick=()=>show(false);update(false)
+ const reset=document.createElement('button');reset.type='button';reset.className='studio-reset';reset.textContent='Restaurar padrão';reset.onclick=()=>{state={...defaults};update()};panel.appendChild(reset);function show(on){panel.hidden=!on;btn.setAttribute('aria-expanded',String(on))}btn.onclick=()=>show(panel.hidden);close.onclick=()=>show(false);update(false);
+ return ()=>{window.removeEventListener('emc-studio-change',syncStudio);controls?.removeEventListener('change',updateLight);panel.remove();btn.remove()}
 };</script><script type="application/json" id="extData">{"1005":"assets/7150586fb2a6afa5f85481d0.webp","1015":"assets/82942a0d7ba9dc07b3b609ea.webp","1018":"assets/26e9a4187dbe5bf95161d2f9.webp","1019":"assets/c288e9083de2aa2c6e0975ab.webp","1040":"assets/00910a834fa263d5d064b470.webp","1042":"assets/f19f4ab969d9c9aeb1059e87.webp","1043":"assets/4f3e49d485278a44da00e993.webp","1044":"assets/c5addf92050334ccabab63f6.webp","1046":"assets/c915fbfde63513b5bae194f8.webp","1047":"assets/10c0c24bf7846aee57089995.webp","2004":"assets/033ecfec689633b8ca679252.webp","2005":"assets/1494b6439aa8568b44ccae89.webp","2006":"assets/6d9a266440d371f0acb962da.webp","2008":"assets/5ddb9de29268c08df04c1be3.webp","2022":"assets/4cb674f09ae3569a14e5209f.webp","2027":"assets/3d9e55dd5615443b37c5db0b.webp","2030":"assets/7cdb05cd4099b9de9f74e5d0.webp","2031":"assets/5d5919646374a2ef55447c1d.webp","2034":"assets/29dd2ed0a69ed07a05f0f368.webp","2035":"assets/2946d5de8e416a804451071e.webp","2036":"assets/17d7f852fdee3f35e8ef2be9.webp","2037":"assets/e631fb9682c0bb4c003d4515.webp","2038":"assets/9396659e70ef5af326bee335.webp","2040":"assets/43c3f6e30d7cc51e4c5850bd.webp","2044":"assets/0b7340871afd7f043e57a0ce.webp","2049":"assets/d91c27ac436310fe4e04b43a.webp","2050":"assets/53f3de47c56986d4c9e64d1e.webp","2057":"assets/a094cb0d5c968ba416374a76.webp","2059":"assets/5142b638674e687126bd58ae.webp","2060":"assets/86f7beda0b50d7985e6ee799.webp","2061":"assets/fd14b389d41141897ad8d5ba.webp","2066":"assets/788ceb08aa2adf5ce8938d19.webp","2067":"assets/ff4d6f38807210fb8e9a2023.webp","2068":"assets/7c445876acc19f91d2ff5adc.webp","2069":"assets/12525e6f6a2dfbf31e81d81e.webp","2072":"assets/1a2e46c21552326ce767d51d.webp","2073":"assets/c485cb6ae5e489596031a1a3.webp","2076":"assets/040d5a732017e5418c2d32e2.webp","2077":"assets/3b1a78a482a057bb6c07b07f.webp","2087":"assets/b941e9646515273a131e773a.webp","2091":"assets/5cf412bec86aca6b7d917f31.webp","3005":"assets/9b184f3986cb8762aba093df.webp","3008":"assets/da8b83036d1d231b79331823.webp","3009":"assets/3c0348ec5ec7dcce9e931976.webp","3010":"assets/bfd8bbf711ab5ad9c9d1b315.webp","3014":"assets/d10340446bb4930b8248cb7f.webp","3015":"assets/81f1a17993d85eeb5be07d8f.webp","3016":"assets/e54bff25cd734f93aa91b9f8.webp","3018":"assets/b098c9c06dda61c97cd07160.webp","3019":"assets/9c89d0ed467972d62d6c02e1.webp","3020":"assets/3d0e208da0efd76ba0e57f65.webp","3023":"assets/8b64d8d63e3da1e9d4127fce.webp","3026":"assets/b154c33bd397471db4174673.webp","3028":"assets/916e52b15a6774655af1e06e.webp","3030":"assets/7580435fd5ff5e0b37d059fa.webp","3031":"assets/96f92fb8a823f9476e407319.webp","3033":"assets/db9d284f6a13a420ece9c172.webp","3034":"assets/d4b3c800d2b14c95eb1a5de6.webp","3036":"assets/4432c7cc25c3be26666ee375.webp","3037":"assets/ae4909eac3d8054ff2db3198.webp","3040":"assets/a0b139c3fe8352f8f76f03c1.webp","3041":"assets/d29c1e7415d47f142cea03d6.webp","3043":"assets/78968f51c650fe75d94bd2ab.webp","3045":"assets/567a89080871ba779b1c0c95.webp","3046":"assets/b0e034965088d17f701a589c.webp","3050":"assets/5d69c5799f7ee26808b871f5.webp","3052":"assets/dda6356e76dd2b8df98a604d.webp","3058":"assets/a9769dffe845a8a6cda3cd0e.webp","3059":"assets/2cbf1f7ae5aa329b9fdd99ce.webp","3060":"assets/2a8c8fee9db2e2f4ada2a091.webp","3090":"assets/c2cb5f431b11bf57312c2552.webp","3093":"assets/42551af75bc89f03e1445405.webp","3094":"assets/1720449f1eb42d0333ca0c72.webp","3096":"assets/60e6079af351fe105140782c.webp","3097":"assets/defe0ad6f7a46146b6df3bcd.webp","3100":"assets/3b3db49ddc0b90efe5657722.webp","3108":"assets/77e7ec4cc8b7c2639815d9fb.webp","3113":"assets/d3fc98741009dae3ba4641d5.webp","3115":"assets/bfe099d78f78e867535f23ad.webp","3118":"assets/f901d3469fb677db02df8977.webp","3120":"assets/72fb1a6792c93585d0bea27c.webp","4002":"assets/dfaa5f384b578e4a45819e44.webp","4004":"assets/615032b446561dc31d6e7435.webp","4013":"assets/d5724d5a73778ec233dafe8f.webp","4022":"assets/8b85e1d257d54bceb45f15f0.webp","4024":"assets/e62859c77652e877cf44fe40.webp","4025":"assets/daf527fcfaa02f32064740fb.webp","4028":"assets/f28ddf082afe32462c8ab24b.webp","4030":"assets/57bdea40748c1cf6e58b5f12.webp","4037":"assets/5b24c1ee57668621faacdb9f.webp","4038":"assets/9425d0944a709ee216ba8058.webp","4046":"assets/99f58bec3127db9f4ceecb64.webp","4050":"assets/8560808bbc790189e0e6e86c.webp","4059":"assets/5efe27e334cc8181eabcd705.webp","4125":"assets/cbc696b7b975ac4307dd880d.webp","4189":"assets/1f7276d06454dccdda9edc4b.webp","5004":"assets/d5526a7225ba8d1e90965629.webp","5015":"assets/2c9dd3dcac484ba77968f23c.webp","5017":"assets/74d074153de1541feed87e36.webp","5019":"assets/f6140be86aa4b5f73f5f8b31.webp","5020":"assets/4242bb285ec313e6b618ddd5.webp","5022":"assets/a9a123bdd27a95299898324d.webp","5024":"assets/755b9257fe2989443fcca9d0.webp","5188":"assets/9530ca09744a1eab5684d9e1.webp","6001":"assets/12bc55c7c9260d19944c9059.webp","6009":"assets/fcb2a3ce7acc996f9a474e6f.webp","6016":"assets/fc6ceae6bae93981d461c818.webp","6308":"assets/df9dd8331c44634b38f38cfe.webp","7001":"assets/9b8fdac22325c42f77dda61c.webp","7002":"assets/fe0853b0252a9e1530415d29.webp","7004":"assets/40040c8f7d52d5a983de1f04.webp","8004":"assets/0bc955e7d708e2550e8b4533.webp","8005":"assets/381ac8d99ade5ae47ed6fbef.webp","9006":"assets/a5a5ca8ffa2f907bfd2e506b.webp"}</script><script>(()=>{const data=JSON.parse(document.getElementById('extData').textContent),list=document.getElementById('extList'),detail=document.getElementById('extDetail'),photo=document.getElementById('extPresentation'),root=document.getElementById('catalogo'),search=document.getElementById('extSearch'),cards=[...document.querySelectorAll('.ext-card')],empty=document.getElementById('extEmpty');
 const bindSearch=(field,tiles,emptyState,key,query=value=>value)=>{
   const indexed=Array.from(tiles,tile=>[tile,key(tile)]);
@@ -5182,7 +5184,38 @@ html:fullscreen #viewer .controls {
 </style>
 <script>
 (() => {
-  const models = {'2027': {width:6.29, depth:3.67}};
+  const models = {
+    '2027': {width: 6.29, depth: 3.67},
+    '4002': {width: 8.68, depth: 8.96},
+    '4004': {width: 5.52, depth: 6.56},
+    '4013': {width: 8.6, depth: 5.93},
+    '4022': {width: 8.26, depth: 8.45},
+    '4024': {width: 16.91, depth: 5.23},
+    '4025': {width: 6.87, depth: 6.94},
+    '4028': {width: null, depth: null},
+    '4030': {width: 12.71, depth: 4.91},
+    '4037': {width: 8.6, depth: 9.75},
+    '4038': {width: 11.8, depth: 11.15},
+    '4046': {width: 10.5, depth: 6.54},
+    '4050': {width: 9.29, depth: 8.15},
+    '4059': {width: 6.65, depth: 8.55},
+    '4125': {width: 8.54, depth: 6.73},
+    '4189': {width: 10.47, depth: 5.83},
+    '5004': {width: 12.42, depth: 4.87},
+    '5015': {width: 7.11, depth: 6.51},
+    '5017': {width: 9.2, depth: 11.67},
+    '5019': {width: 10.97, depth: 8.51},
+    '5022': {width: 10.18, depth: 5.92},
+    '5024': {width: 14.23, depth: 7.35},
+    '5188': {width: 12.46, depth: 8.37},
+    '6001': {width: 12.6, depth: 8.1},
+    '6009': {width: 11.06, depth: 8.06},
+    '6016': {width: 11.49, depth: 6.46},
+    '6308': {width: 10.75, depth: 10.12},
+    '7001': {width: 13.93, depth: 9.32},
+    '7002': {width: 14.3, depth: 9.93},
+    '7004': {width: 12.52, depth: 8.11}
+  };
   const get = id => document.getElementById(id);
   const detail = get('extDetail');
   const open = get('extOpen3D');
@@ -5218,6 +5251,33 @@ html:fullscreen #viewer .controls {
   }
   new ResizeObserver(resize).observe(stage);
 
+  function disposeScene(scene) {
+    const resources = new Set();
+    scene.traverse(object => {
+      if (object.geometry) resources.add(object.geometry);
+      for (const material of [object.material].flat()) {
+        if (!material) continue;
+        resources.add(material);
+        for (const value of Object.values(material)) if (value?.isTexture) resources.add(value);
+      }
+    });
+    for (const resource of resources) resource.dispose();
+  }
+
+  function releaseActive() {
+    if (!active) return;
+    active.renderer.setAnimationLoop(null);
+    active.releaseCotas?.();
+    active.releaseLighting?.();
+    active.controls.dispose();
+    disposeScene(active.scene);
+    active.environment?.dispose();
+    active.renderer.dispose();
+    active.renderer.forceContextLoss();
+    active.renderer.domElement.remove();
+    active = undefined;
+  }
+
   function prepare(id, model) {
     const T = window.__emc3d;
     const box = new T.qt().setFromObject(model);
@@ -5231,11 +5291,13 @@ html:fullscreen #viewer .controls {
     scene.add(model,key,new T.er(0xffffff,0x96a0ac,1.1));
     const renderer = new T.ra({antialias:true});
     renderer.setPixelRatio(window.emc3dPixelRatio);
+    let environment;
     try {
       const studio = new T.ua();
       const pmrem = new T.ys(renderer);
       try {
-        scene.environment = pmrem.fromScene(studio, .04).texture;
+        environment = pmrem.fromScene(studio, .04);
+        scene.environment = environment.texture;
         scene.environmentIntensity = .35;
       } finally {
         pmrem.dispose();
@@ -5251,10 +5313,14 @@ html:fullscreen #viewer .controls {
     controls.enableDamping = true;
     controls.update();
     controls.saveState();
-    const {width,depth} = models[id];
-    active = {id,renderer,camera,controls,scene};
-    window.emcAddDimensions(id,model,camera,viewer,toolbar,[width,null,depth]);
-    window.emcLightControl(key,viewer,toolbar,renderer,scene,controls,[model]);
+    const {width, depth} = models[id];
+    const releaseCotas = width && depth
+      ? window.emcAddDimensions(id, model, camera, viewer, toolbar, [width, null, depth])
+      : undefined;
+    const releaseLighting = window.emcLightControl(key, viewer, toolbar, renderer, scene, controls, [model]);
+    active = {id, renderer, camera, controls, scene, environment, releaseCotas, releaseLighting};
+    rotate.setAttribute('aria-pressed', 'false');
+    rotate.textContent = 'Giro automático';
   }
 
   function syncExpand() {
@@ -5338,9 +5404,18 @@ html:fullscreen #viewer .controls {
         await window.emcPaintBefore3D();
         const response = await fetch('assets/exterior/'+id+'.glb', {signal:request.signal});
         if (!response.ok) throw Error('Modelo indisponível.');
-        const {scene} = await new window.__emc3d.aa().parseAsync(await response.arrayBuffer(),'');
-        if (request.signal.aborted) return;
-        prepare(id,scene);
+        const loader = new window.__emc3d.aa();
+        if (id !== '2027') {
+          const {MeshoptDecoder} = await import('./assets/vendor/meshopt_decoder.js');
+          loader.setMeshoptDecoder(MeshoptDecoder);
+        }
+        const {scene} = await loader.parseAsync(await response.arrayBuffer(), '');
+        if (request.signal.aborted) {
+          disposeScene(scene);
+          return;
+        }
+        releaseActive();
+        prepare(id, scene);
       }
       get('extViewerTitle').textContent = 'Área Externa • Modelo '+id;
       note.hidden = true;
