@@ -1,0 +1,74 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, sans-serif;
+  color: #f7f9fc;
+  background: #101822;
+}
+* { box-sizing: border-box; }
+body {
+  min-height: 100svh;
+  margin: 0;
+  background: radial-gradient(ellipse at 50% 0, #253b4b, #101822 67%);
+}
+.portal {
+  display: grid;
+  align-content: center;
+  gap: clamp(20px, 4vw, 36px);
+  min-height: 100svh;
+  width: min(900px, 100%);
+  margin: auto;
+  padding: 28px clamp(20px, 5vw, 48px);
+}
+h1 { margin: 0; font-size: clamp(26px, 4vw, 42px); }
+.entries {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.entry {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-height: 240px;
+  padding: clamp(18px, 4vw, 30px);
+  border: 1px solid var(--edge);
+  border-radius: 18px;
+  background: var(--card);
+  color: inherit;
+  text-decoration: none;
+}
+.entry-space { --card: #211921; --edge: #a85259; }
+.entry-emc { --card: #172c38; --edge: #608c9e; }
+.entry img {
+  align-self: center;
+  justify-self: center;
+  width: min(100%, 230px);
+  height: 112px;
+  object-fit: contain;
+}
+.entry span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 20px;
+  font-size: clamp(16px, 2.5vw, 21px);
+  font-weight: 700;
+}
+.entry span::after { content: '→' / ''; }
+.entry:hover { border-color: #f7f9fc; }
+a:focus-visible { outline: 3px solid #ffd77c; outline-offset: 5px; }
+.space-page {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: radial-gradient(ellipse at 50% 35%, #44232a, #141019 65%);
+}
+.space-header { padding: 24px clamp(20px, 5vw, 48px); }
+.space-header a { color: inherit; font-weight: 650; text-decoration: none; }
+.space-header a:hover { text-decoration: underline; }
+.space-main { display: grid; align-items: center; justify-items: center; padding: 20px 24px 70px; }
+.space-main img { display: block; width: min(351px, 100%); height: auto; }
+@media (max-width: 580px) {
+  .entries { grid-template-columns: 1fr; }
+  .entry { min-height: 170px; }
+  .entry img { height: 85px; }
+}

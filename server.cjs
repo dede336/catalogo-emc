@@ -22,9 +22,20 @@ function sessionResponse(res,session,headers={}){
 }
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml','.bin':'application/octet-stream'};
 const sharedRequest=createShareHandler({root,password,authorized});
+const publicPages = new Map([
+ ['/', 'entrada.html'],
+ ['/emc', 'index.html'],
+ ['/index.html', 'index.html'],
+ ['/space-jump', 'space-jump.html']
+]);
+const publicAssets = new Set([
+ '/entradas.css',
+ '/assets/f1ac55cd8529aafd7b72d878.png',
+ '/assets/space-power-jump-logo.png'
+]);
 const server=http.createServer(async(req,res)=>{
  res.setHeader('X-Content-Type-Options','nosniff');
- let pathname;try{pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname)}catch{res.writeHead(400).end();return}
+ let url,pathname;try{url=new URL(req.url,'http://localhost');pathname=decodeURIComponent(url.pathname)}catch{res.writeHead(400).end();return}
  if(pathname==='/health'){res.writeHead(200,{'Content-Type':'application/json'}).end('{"ok":true}');return}
  if(pathname==='/api/session'&&req.method==='GET'){sessionResponse(res,validSession(req));return}
  if(pathname==='/api/login'&&req.method==='POST'){
@@ -38,10 +49,12 @@ const server=http.createServer(async(req,res)=>{
  }
  if(await sharedRequest(req,res,pathname))return;
  if(!['GET','HEAD'].includes(req.method)){res.writeHead(405).end();return}
- const entry=pathname==='/'||pathname==='/index.html';
- const publicLogo=pathname==='/assets/f1ac55cd8529aafd7b72d878.png';
- if(!entry&&!publicLogo&&!authorized(req)){res.writeHead(401,{'Cache-Control':'no-store'}).end();return}
- const file=path.resolve(root,entry?'index.html':'.'+pathname);if(!file.startsWith(root+path.sep)){res.writeHead(403).end();return}
+ if(pathname==='/emc/'||pathname==='/space-jump/'){
+  res.writeHead(308,{Location:pathname.slice(0,-1)+url.search}).end();return
+ }
+ const entry=publicPages.get(pathname);
+ if(!entry&&!publicAssets.has(pathname)&&!authorized(req)){res.writeHead(401,{'Cache-Control':'no-store'}).end();return}
+ const file=path.resolve(root,entry||'.'+pathname);if(!file.startsWith(root+path.sep)){res.writeHead(403).end();return}
  let stat;try{stat=await fs.promises.stat(file);if(!stat.isFile())throw Error()}catch{res.writeHead(404).end();return}
  res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','Content-Length':stat.size,'Cache-Control':entry?'no-store':'private, max-age=86400'});if(req.method==='HEAD'){res.end();return}const stream=fs.createReadStream(file);stream.on('error',()=>res.destroy());stream.pipe(res)
 });
