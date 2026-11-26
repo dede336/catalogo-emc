@@ -92,19 +92,32 @@ function createSpaceChecklistHandler() {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Checklist de estoque · Space Power Jump</title>
-  <link rel="stylesheet" href="/entradas.css">
+  <link rel="stylesheet" href="/entradas.css?v=space-2">
 </head>
 <body class="space-page">
   <header class="space-header"><a href="/space-jump">← Voltar ao Space Power Jump</a></header>
   <main class="space-main">
-    <form class="space-auth" action="${route}" method="post">
-      <h1>Checklist de estoque</h1>
+    <form class="space-card space-auth" action="${route}" method="post">
+      <img class="space-logo" src="/assets/space-power-jump-logo.png" width="351" height="169" alt="Space Power Jump">
+      <p>Digite a senha para acessar o checklist de estoque.</p>
+      <div class="space-password-field">
+        <input type="password" id="space-password" name="password" autocomplete="current-password" aria-label="Senha" placeholder="Senha" required>
+        <button type="button" id="space-show-password" aria-controls="space-password" hidden>Mostrar senha</button>
+      </div>
       ${error}
-      <label for="space-password">Senha da equipe</label>
-      <input type="password" id="space-password" name="password" autocomplete="current-password" required>
       <button class="space-tool" type="submit">Entrar</button>
     </form>
   </main>
+  <script>
+    const passwordField = document.getElementById('space-password');
+    const showPassword = document.getElementById('space-show-password');
+    showPassword.hidden = false;
+    showPassword.addEventListener('click', () => {
+      const reveal = passwordField.type === 'password';
+      passwordField.type = reveal ? 'text' : 'password';
+      showPassword.textContent = reveal ? 'Ocultar senha' : 'Mostrar senha';
+    });
+  </script>
 </body>
 </html>`);
   }
