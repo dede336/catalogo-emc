@@ -4,6 +4,8 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const {promisify} = require('node:util');
+const deriveKey = promisify(crypto.scrypt);
 
 const route = '/space-jump/checklist';
 const cookieName = 'space_session';
@@ -11,9 +13,11 @@ const sessionSeconds = 24 * 60 * 60;
 const noStore = {'Cache-Control': 'no-store'};
 const digest = value => crypto.createHash('sha256').update(value).digest();
 
+const passwordFile = () => path.join(os.homedir(), '.config', 'catalogo-emc', 'space-checklist-password');
+
 function readPassword() {
   if (process.env.SPACE_CHECKLIST_PASSWORD) return process.env.SPACE_CHECKLIST_PASSWORD;
-  const file = path.join(os.homedir(), '.config', 'catalogo-emc', 'space-checklist-password');
+  const file = passwordFile();
   try {
     return fs.readFileSync(file, 'utf8').replace(/\r?\n$/, '');
   } catch (error) {
@@ -23,23 +27,48 @@ function readPassword() {
 }
 
 function createSpaceChecklistHandler() {
-  let checklist, passwordHash, sessionKey;
-  const password = readPassword();
-  if (password) {
+  let sealed, checklist, passwordHash, sessionKey;
+  let unlocking = false;
+  try {
+    sealed = fs.readFileSync(path.join(__dirname, 'private', 'space-checklist.html.gz.enc'));
+    if (sealed.length <= 44) throw Error('Arquivo incompleto');
+  } catch {
+    sealed = undefined;
+    console.error('Arquivo protegido do checklist da Space indisponível.');
+  }
+
+  function unlock(password, key) {
     try {
-      const sealed = fs.readFileSync(path.join(__dirname, 'private', 'space-checklist.html.gz.enc'));
-      const salt = sealed.subarray(0, 16);
-      const iv = sealed.subarray(16, 28);
-      const tag = sealed.subarray(28, 44);
-      const key = crypto.scryptSync(password, salt, 32);
-      const decoder = crypto.createDecipheriv('aes-256-gcm', key, iv);
-      decoder.setAuthTag(tag);
-      checklist = Buffer.concat([decoder.update(sealed.subarray(44)), decoder.final()]);
+      const decoder = crypto.createDecipheriv('aes-256-gcm', key, sealed.subarray(16, 28));
+      decoder.setAuthTag(sealed.subarray(28, 44));
+      const data = Buffer.concat([decoder.update(sealed.subarray(44)), decoder.final()]);
       passwordHash = digest(password);
       sessionKey = crypto.createHmac('sha256', key).update('space-checklist-session-v1').digest();
+      checklist = data;
+    } finally {
       key.fill(0);
+    }
+  }
+
+  const configured = readPassword();
+  if (configured && sealed) {
+    try {
+      unlock(configured, crypto.scryptSync(configured, sealed.subarray(0, 16), 32));
     } catch {
-      console.error('O checklist da Space não abriu. Confira a senha configurada e o arquivo protegido.');
+      console.error('Senha local do checklist inválida. O acesso continua disponível pela tela de senha.');
+    }
+  }
+
+  async function savePassword(password) {
+    const file = passwordFile();
+    const temp = file + '.' + crypto.randomBytes(8).toString('hex');
+    try {
+      await fs.promises.mkdir(path.dirname(file), {recursive: true, mode: 0o700});
+      await fs.promises.writeFile(temp, password, {flag: 'wx', mode: 0o600});
+      await fs.promises.rename(temp, file);
+    } catch {
+      await fs.promises.rm(temp, {force: true}).catch(() => {});
+      console.warn('Não foi possível salvar a senha da Space para o próximo reinício.');
     }
   }
 
@@ -48,12 +77,13 @@ function createSpaceChecklistHandler() {
     const token = (req.headers.cookie || '').split(';').map(item => item.trim())
       .find(item => item.startsWith(cookieName + '='))?.slice(cookieName.length + 1);
     const parsed = token?.match(/^(\d{13}\.[a-f\d]{48})\.([a-f\d]{64})$/);
-    return Boolean(parsed && Number(parsed[1].split('.')[0]) > Date.now() &&
+    return Boolean(sessionKey && parsed && Number(parsed[1].split('.')[0]) > Date.now() &&
       crypto.timingSafeEqual(sign(parsed[1]), Buffer.from(parsed[2], 'hex')));
   }
 
   function form(res, status, method) {
-    const error = status === 401 ? '<p class="space-auth-error" role="alert">Senha incorreta.</p>' : '';
+    const warning = status === 401 ? 'Senha incorreta.' : status === 429 ? 'Aguarde um instante e tente novamente.' : '';
+    const error = warning ? '<p class="space-auth-error" role="alert">' + warning + '</p>' : '';
     res.writeHead(status, {...noStore, 'Content-Type': 'text/html; charset=utf-8'});
     if (method === 'HEAD') return res.end();
     res.end(`<!doctype html>
@@ -81,7 +111,7 @@ function createSpaceChecklistHandler() {
 
   return async (req, res, pathname) => {
     if (pathname !== route) return false;
-    if (!checklist) {
+    if (!sealed) {
       res.writeHead(503, {...noStore, 'Content-Type': 'text/plain; charset=utf-8'});
       res.end('O acesso ao checklist ainda não está disponível.');
       return true;
@@ -110,7 +140,22 @@ function createSpaceChecklistHandler() {
         return true;
       }
       const provided = new URLSearchParams(body).get('password');
-      if (!provided || !crypto.timingSafeEqual(digest(provided), passwordHash)) {
+      if (provided && !checklist) {
+        if (unlocking) {
+          form(res, 429, req.method);
+          return true;
+        }
+        unlocking = true;
+        try {
+          unlock(provided, await deriveKey(provided, sealed.subarray(0, 16), 32));
+          await savePassword(provided);
+        } catch {
+          // Authentication of the encrypted file failed; the password will be rejected below.
+        } finally {
+          unlocking = false;
+        }
+      }
+      if (!provided || !passwordHash || !crypto.timingSafeEqual(digest(provided), passwordHash)) {
         form(res, 401, req.method);
         return true;
       }
