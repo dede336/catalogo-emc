@@ -1,6 +1,7 @@
 'use strict';
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {createShareHandler}=require('./share.cjs');
+const {createSpaceChecklistHandler}=require('./space-checklist.cjs');
 const root=path.join(__dirname,'public');
 const password=process.env.CATALOG_PASSWORD;if(!password)throw Error('Configure CATALOG_PASSWORD no ambiente do servidor.');
 const digest=value=>crypto.createHash('sha256').update(value).digest();
@@ -22,6 +23,7 @@ function sessionResponse(res,session,headers={}){
 }
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml','.bin':'application/octet-stream'};
 const sharedRequest=createShareHandler({root,password,authorized});
+const spaceChecklistRequest=createSpaceChecklistHandler();
 const publicPages = new Map([
  ['/', 'entrada.html'],
  ['/emc', 'index.html'],
@@ -48,6 +50,7 @@ const server=http.createServer(async(req,res)=>{
   return
  }
  if(await sharedRequest(req,res,pathname))return;
+ if(await spaceChecklistRequest(req,res,pathname))return;
  if(!['GET','HEAD'].includes(req.method)){res.writeHead(405).end();return}
  if(pathname==='/emc/'||pathname==='/space-jump/'){
   res.writeHead(308,{Location:pathname.slice(0,-1)+url.search}).end();return

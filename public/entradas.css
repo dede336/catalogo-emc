@@ -72,3 +72,47 @@ a:focus-visible { outline: 3px solid #ffd77c; outline-offset: 5px; }
   .entry { min-height: 170px; }
   .entry img { height: 85px; }
 }
+
+.space-content {
+  display: grid;
+  justify-items: center;
+  gap: 24px;
+  width: 100%;
+}
+.space-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: #a62934;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+.space-tool:hover { background: #8f202b; }
+
+.space-auth {
+  display: grid;
+  gap: 14px;
+  width: min(410px, 100%);
+  margin: 0;
+  padding: 24px;
+  border: 1px solid #a85259;
+  border-radius: 16px;
+  background: #211921;
+}
+.space-auth h1 { font-size: 24px; }
+.space-auth input {
+  min-width: 0;
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 1px solid #a67d82;
+  border-radius: 8px;
+  background: #17141a;
+  color: inherit;
+  font: inherit;
+}
+.space-auth button { border: 0; font: inherit; font-weight: 700; cursor: pointer; }
+.space-auth-error { margin: 0; color: #ffb5b9; }
