@@ -4277,16 +4277,26 @@ bindSearch(search,cards,empty,card=>card.dataset.ext);document.getElementById('c
 .emc-share-dialog button[type="button"]{background:#bbf122}
 </style><script>(()=>{
 const original=window.emcAddDimensions;if(typeof original!=='function')return;
-async function standaloneStart(number, lightenGray, addMetalReflections, sharedModelUrl, dimensions){
+async function standaloneStart(number, lightenGray, addMetalReflections, sharedModelUrl, dimensions, loadOptions = {}){
  const T=window.__emc3d,host=document.getElementById('stage'),bar=document.getElementById('toolbar'),notice=document.getElementById('notice');
  try{
  const response = await fetch(sharedModelUrl, { cache: 'no-store' });
  if(response.status === 410){notice.textContent='Link expirado. Peça um novo compartilhamento ao vendedor.';return;}
  if(!response.ok)throw Error('Compartilhamento indisponível');
  const bytes = await response.arrayBuffer();
- new T.aa().parseAsync(bytes,'').then(async ({scene:model})=>{
+ const loader = new T.aa();
+ if (loadOptions.decoder) {
+   const {MeshoptDecoder} = await import(loadOptions.decoder);
+   loader.setMeshoptDecoder(MeshoptDecoder);
+ }
+ loader.parseAsync(bytes,'').then(async ({scene:model})=>{
  if(!host.isConnected)return;
  if(lightenGray)await lightenGray(model, number);
+ if(loadOptions.brandBoard){
+   try { await loadOptions.brandBoard(model); }
+   catch(error) { console.warn('Não foi possível aplicar a logo da placa:', error); }
+ }
+ if(!host.isConnected)return;
  const renderer=new T.ra({antialias:true});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.toneMapping=0;renderer.toneMappingExposure=1;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.ao;host.prepend(renderer.domElement);
  const scene=new T.yi();scene.background=new T.be(0xe8edf2);scene.add(new T.er(0xffffff,0x96a0ac,1.1));const light=new T.Ei(0xfff7e7,2);scene.add(light);
  try{const studio=new T.ua(),pmrem=new T.ys(renderer),env=pmrem.fromScene(studio,.04);scene.environment=env.texture;scene.environmentIntensity=1.15;studio.dispose();pmrem.dispose()}catch(e){}
@@ -5332,7 +5342,7 @@ html:fullscreen #viewer .controls {
     <button id="babyViewerRight" class="ext-baby-only" type="button" aria-label="Girar à direita">→</button>
     <button id="extViewerReset" type="button">Voltar à vista inicial</button>
     <button id="extViewerExpand" type="button" aria-pressed="false">Expandir</button>
-    <button id="babyViewerShare" class="ext-baby-only" type="button">Compartilhar 3D</button>
+    <button id="extViewerShare" type="button">Compartilhar 3D</button>
   </div>
 </section>
 <style>
@@ -5391,6 +5401,117 @@ html:fullscreen:not(.emc-controls-visible) #babyVariantPicker { visibility: hidd
 #extViewer[hidden], #extOpen3D[hidden], #ext3DNote[hidden] { display: none; }
 #ext3DNote { color: #fff; }
 </style>
+<script type="application/json" id="ext3DModels">
+{
+  "1005": {"path":"assets/exterior/1005.glb?v=20261127"},
+  "1018": {"path":"assets/exterior/1018.glb?v=20261127"},
+  "1040": {"path":"assets/exterior/1040.glb?v=20261127"},
+  "1042": {"path":"assets/exterior/1042.glb?v=20261127"},
+  "1043": {"path":"assets/exterior/1043.glb?v=20261127"},
+  "1044": {"path":"assets/exterior/1044.glb?v=20261127"},
+  "1046": {"path":"assets/exterior/1046.glb?v=20261127"},
+  "1047": {"path":"assets/exterior/1047.glb?v=20261127"},
+  "2004": {"path":"assets/exterior/2004.glb?v=20261127"},
+  "2005": {"path":"assets/exterior/2005.glb?v=20261127"},
+  "2006": {"path":"assets/exterior/2006.glb?v=20261127"},
+  "2008": {"path":"assets/exterior/2008.glb?v=20261127"},
+  "2022": {"path":"assets/exterior/2022.glb?v=20261127"},
+  "2027": {"width":6.29,"depth":3.67,"path":"assets/exterior/2027.glb?v=20261127"},
+  "2030": {"path":"assets/exterior/2030.glb?v=20261127"},
+  "2031": {"path":"assets/exterior/2031.glb?v=20261127"},
+  "2034": {"path":"assets/exterior/2034.glb?v=20261127"},
+  "2035": {"path":"assets/exterior/2035.glb?v=20261127"},
+  "2036": {"path":"assets/exterior/2036.glb?v=20261127"},
+  "2037": {"path":"assets/exterior/2037.glb?v=20261127"},
+  "2038": {"path":"assets/exterior/2038.glb?v=20261127"},
+  "2040": {"path":"assets/exterior/2040.glb?v=20261127"},
+  "2044": {"path":"assets/exterior/2044.glb?v=20261127"},
+  "2049": {"path":"assets/exterior/2049.glb?v=20261127"},
+  "2050": {"path":"assets/exterior/2050.glb?v=20261127"},
+  "2057": {"path":"assets/exterior/2057.glb?v=20261127"},
+  "2059": {"path":"assets/exterior/2059.glb?v=20261127"},
+  "2060": {"path":"assets/exterior/2060.glb?v=20261127"},
+  "2061": {"path":"assets/exterior/2061.glb?v=20261127"},
+  "2066": {"path":"assets/exterior/2066.glb?v=20261127"},
+  "2067": {"path":"assets/exterior/2067.glb?v=20261127"},
+  "2068": {"path":"assets/exterior/2068.glb?v=20261127"},
+  "2069": {"path":"assets/exterior/2069.glb?v=20261127"},
+  "2072": {"path":"assets/exterior/2072.glb?v=20261127"},
+  "2073": {"path":"assets/exterior/2073.glb?v=20261127"},
+  "2076": {"path":"assets/exterior/2076.glb?v=20261127"},
+  "2077": {"path":"assets/exterior/2077.glb?v=20261127"},
+  "2087": {"path":"assets/exterior/2087.glb?v=20261127"},
+  "2091": {"path":"assets/exterior/2091.glb?v=20261127"},
+  "3005": {"path":"assets/exterior/3005.glb?v=20261127"},
+  "3008": {"path":"assets/exterior/3008.glb?v=20261127"},
+  "3009": {"path":"assets/exterior/3009.glb?v=20261127"},
+  "3010": {"path":"assets/exterior/3010.glb?v=20261127"},
+  "3014": {"path":"assets/exterior/3014.glb?v=20261127"},
+  "3015": {"path":"assets/exterior/3015.glb?v=20261127"},
+  "3016": {"path":"assets/exterior/3016.glb?v=20261127"},
+  "3018": {"path":"assets/exterior/3018.glb?v=20261127"},
+  "3019": {"path":"assets/exterior/3019.glb?v=20261127"},
+  "3020": {"path":"assets/exterior/3020.glb?v=20261127"},
+  "3023": {"path":"assets/exterior/3023.glb?v=20261127"},
+  "3026": {"path":"assets/exterior/3026.glb?v=20261127"},
+  "3028": {"path":"assets/exterior/3028.glb?v=20261127"},
+  "3030": {"path":"assets/exterior/3030.glb?v=20261127"},
+  "3031": {"path":"assets/exterior/3031.glb?v=20261127"},
+  "3033": {"path":"assets/exterior/3033.glb?v=20261127"},
+  "3034": {"path":"assets/exterior/3034.glb?v=20261127"},
+  "3036": {"path":"assets/exterior/3036.glb?v=20261127"},
+  "3037": {"path":"assets/exterior/3037.glb?v=20261127"},
+  "3040": {"path":"assets/exterior/3040.glb?v=20261127"},
+  "3041": {"path":"assets/exterior/3041.glb?v=20261127"},
+  "3043": {"path":"assets/exterior/3043.glb?v=20261127"},
+  "3045": {"path":"assets/exterior/3045.glb?v=20261127"},
+  "3046": {"path":"assets/exterior/3046.glb?v=20261127"},
+  "3050": {"path":"assets/exterior/3050.glb?v=20261127"},
+  "3052": {"path":"assets/exterior/3052.glb?v=20261127"},
+  "3058": {"path":"assets/exterior/3058.glb?v=20261127"},
+  "3059": {"path":"assets/exterior/3059.glb?v=20261127"},
+  "3060": {"path":"assets/exterior/3060.glb?v=20261127"},
+  "3090": {"path":"assets/exterior/3090.glb?v=20261127"},
+  "3093": {"path":"assets/exterior/3093.glb?v=20261127"},
+  "3094": {"path":"assets/exterior/3094.glb?v=20261127"},
+  "3096": {"path":"assets/exterior/3096.glb?v=20261127"},
+  "3097": {"path":"assets/exterior/3097.glb?v=20261127"},
+  "3100": {"path":"assets/exterior/3100.glb?v=20261127"},
+  "3108": {"path":"assets/exterior/3108.glb?v=20261127"},
+  "3115": {"path":"assets/exterior/3115.glb?v=20261127"},
+  "3118": {"path":"assets/exterior/3118.glb?v=20261127"},
+  "3120": {"path":"assets/exterior/3120.glb?v=20261127"},
+  "4002": {"width":8.68,"depth":8.96,"needsBranding":true},
+  "4004": {"width":5.52,"depth":6.56,"needsBranding":true},
+  "4013": {"width":8.6,"depth":5.93,"needsBranding":true},
+  "4022": {"width":8.26,"depth":8.45,"needsBranding":true},
+  "4024": {"width":16.91,"depth":5.23,"needsBranding":true},
+  "4025": {"width":6.87,"depth":6.94,"needsBranding":true},
+  "4028": {"width":8.3,"depth":3.9,"needsBranding":true},
+  "4030": {"width":12.71,"depth":4.91,"needsBranding":true},
+  "4037": {"width":8.6,"depth":9.75,"needsBranding":true},
+  "4038": {"width":11.8,"depth":11.15,"needsBranding":true},
+  "4046": {"width":10.5,"depth":6.54,"needsBranding":true},
+  "4050": {"width":9.29,"depth":8.15,"needsBranding":true},
+  "4059": {"width":6.65,"depth":8.55,"needsBranding":true},
+  "4125": {"width":8.54,"depth":6.73,"needsBranding":true},
+  "4189": {"width":10.47,"depth":5.83,"needsBranding":true},
+  "5004": {"width":12.42,"depth":4.87,"needsBranding":true},
+  "5015": {"width":7.11,"depth":6.51,"needsBranding":true},
+  "5017": {"width":9.2,"depth":11.67,"needsBranding":true},
+  "5019": {"width":10.97,"depth":8.51,"needsBranding":true},
+  "5022": {"width":10.18,"depth":5.92,"needsBranding":true},
+  "5024": {"width":14.23,"depth":7.35,"needsBranding":true},
+  "5188": {"width":12.46,"depth":8.37,"needsBranding":true},
+  "6001": {"width":12.6,"depth":8.1,"needsBranding":true},
+  "6009": {"width":11.06,"depth":8.06,"needsBranding":true},
+  "6016": {"width":11.49,"depth":6.46,"needsBranding":true},
+  "6308": {"width":10.75,"depth":10.12,"needsBranding":true},
+  "7001": {"width":13.93,"depth":9.32,"needsBranding":true},
+  "7002": {"width":14.3,"depth":9.93,"needsBranding":true},
+  "7004": {"width":12.52,"depth":8.11,"needsBranding":true}
+}
+</script>
 <script>
 (() => {
   const vilaId = 'vila-do-sol';
@@ -5399,39 +5520,8 @@ html:fullscreen:not(.emc-controls-visible) #babyVariantPicker { visibility: hidd
     2: {path: 'assets/diversos/playground-baby-sem-rampa-direita.glb', share: 'playgroundbaby2'}
   };
   let babySelected = '1';
-  const models = {
-    [vilaId]: {title: 'Playground Baby'},
-    '2027': {width: 6.29, depth: 3.67},
-    '4002': {width: 8.68, depth: 8.96},
-    '4004': {width: 5.52, depth: 6.56},
-    '4013': {width: 8.6, depth: 5.93},
-    '4022': {width: 8.26, depth: 8.45},
-    '4024': {width: 16.91, depth: 5.23},
-    '4025': {width: 6.87, depth: 6.94},
-    '4028': {width: 8.3, depth: 3.9},
-    '4030': {width: 12.71, depth: 4.91},
-    '4037': {width: 8.6, depth: 9.75},
-    '4038': {width: 11.8, depth: 11.15},
-    '4046': {width: 10.5, depth: 6.54},
-    '4050': {width: 9.29, depth: 8.15},
-    '4059': {width: 6.65, depth: 8.55},
-    '4125': {width: 8.54, depth: 6.73},
-    '4189': {width: 10.47, depth: 5.83},
-    '5004': {width: 12.42, depth: 4.87},
-    '5015': {width: 7.11, depth: 6.51},
-    '5017': {width: 9.2, depth: 11.67},
-    '5019': {width: 10.97, depth: 8.51},
-    '5022': {width: 10.18, depth: 5.92},
-    '5024': {width: 14.23, depth: 7.35},
-    '5188': {width: 12.46, depth: 8.37},
-    '6001': {width: 12.6, depth: 8.1},
-    '6009': {width: 11.06, depth: 8.06},
-    '6016': {width: 11.49, depth: 6.46},
-    '6308': {width: 10.75, depth: 10.12},
-    '7001': {width: 13.93, depth: 9.32},
-    '7002': {width: 14.3, depth: 9.93},
-    '7004': {width: 12.52, depth: 8.11}
-  };
+  const models = JSON.parse(document.getElementById('ext3DModels').textContent);
+  models[vilaId] = {title: 'Playground Baby'};
   const get = id => document.getElementById(id);
   const detail = get('extDetail');
   const open = get('extOpen3D');
@@ -5445,24 +5535,11 @@ html:fullscreen:not(.emc-controls-visible) #babyVariantPicker { visibility: hidd
   const back = get('extViewerBack');
   const expand = get('extViewerExpand');
   const catalogs = get('extViewerCatalog');
-  const babyShare = get('babyViewerShare');
+  const share = get('extViewerShare');
   const babyPicker = get('babyVariantPicker');
   const babyVariantStatus = get('babyVariantStatus');
   const babyVariantButtons = [...babyPicker.querySelectorAll('button[data-baby-variant]')];
   const expandedClass = 'emc-exterior-expanded';
-  const updatedExteriorModels = new Set([
-    '1005', '1018', '1040', '1042', '1043', '1044', '1046', '1047', '2004', '2005',
-    '2006', '2008', '2022', '2027', '2030', '2031', '2034', '2035', '2036', '2037',
-    '2038', '2040', '2044', '2049', '2050', '2057', '2059', '2060', '2061', '2066',
-    '2067', '2068', '2069', '2072', '2073', '2076', '2077', '2087', '2091', '3005',
-    '3008', '3009', '3010', '3014', '3015', '3016', '3018', '3019', '3020', '3023',
-    '3026', '3028', '3030', '3031', '3033', '3034', '3036', '3037', '3040', '3041',
-    '3043', '3045', '3046', '3050', '3052', '3058', '3059', '3060', '3090', '3093',
-    '3094', '3096', '3097', '3100', '3108', '3115', '3118', '3120',
-  ]);
-  for (const id of updatedExteriorModels) {
-    models[id] = {...models[id], path: 'assets/exterior/' + id + '.glb?v=20261127'};
-  }
   for (const card of document.querySelectorAll('#extGrid > .ext-card')) {
     card.toggleAttribute('data-has-3d', Boolean(models[card.dataset.ext]));
   }
@@ -5630,7 +5707,7 @@ html:fullscreen:not(.emc-controls-visible) #babyVariantPicker { visibility: hidd
     const releaseCotas = dimensions
       ? window.emcAddDimensions(id, model, camera, viewer, toolbar, dimensions)
       : undefined;
-    if (id === vilaId) toolbar.append(babyShare);
+    toolbar.append(share);
     const releaseLighting = window.emcLightControl(key, viewer, toolbar, renderer, scene, controls, [model]);
     active = {id, renderer, camera, controls, scene, environment, releaseCotas, releaseLighting};
     rotate.setAttribute('aria-pressed', 'false');
@@ -5726,7 +5803,11 @@ html:fullscreen:not(.emc-controls-visible) #babyVariantPicker { visibility: hidd
   }
   get('babyViewerLeft').onclick = () => rotateBaby(1);
   get('babyViewerRight').onclick = () => rotateBaby(-1);
-  babyShare.onclick = () => window.emcShareModel(babyVariants[babySelected].share, babyShare);
+  share.onclick = () => {
+    if (!active || viewer.hidden) return;
+    const model = active.id === vilaId ? babyVariants[babySelected].share : 'ext' + active.id;
+    return window.emcShareModel(model, share);
+  };
   for (const button of babyVariantButtons) {
     button.onclick = () => openModel(vilaId, button, babyVariantStatus, button.dataset.babyVariant);
   }
@@ -5758,7 +5839,7 @@ html:fullscreen:not(.emc-controls-visible) #babyVariantPicker { visibility: hidd
         }
         const {scene} = await loader.parseAsync(await response.arrayBuffer(), '');
         try {
-          if (!request.signal.aborted && id !== vilaId && !updatedExteriorModels.has(id)) await brandInformationBoard(scene);
+          if (!request.signal.aborted && entry.needsBranding) await brandInformationBoard(scene);
         } catch (error) {
           console.warn('Não foi possível aplicar a logo da placa:', error);
         }

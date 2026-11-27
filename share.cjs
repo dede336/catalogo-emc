@@ -9,7 +9,7 @@ const { gunzip } = require('node:zlib');
 const deriveKey = promisify(crypto.pbkdf2);
 const unzip = promisify(gunzip);
 const lifetime = 7 * 24 * 60 * 60;
-const modelPattern = /^(?:[1-9]|1[0-9]|2[0-5]|cama2m|tramp[1-7]|playgroundbaby2?)$/;
+const modelPattern = /^(?:[1-9]|1[0-9]|2[0-5]|cama2m|tramp[1-7]|playgroundbaby2?|ext[0-9]{4})$/;
 const babyModels = new Map([
   ['playgroundbaby', {title:'Playground Baby • Modelo 1', file:'assets/diversos/playground-baby-tubos-redondos.glb'}],
   ['playgroundbaby2', {title:'Playground Baby • Modelo 2', file:'assets/diversos/playground-baby-sem-rampa-direita.glb'}]
@@ -83,6 +83,15 @@ async function removeExpiredBindings(directory, now) {
 
 function modelSource(html, model) {
   if (babyModels.has(model)) return babyModels.get(model);
+  if (model.startsWith('ext')) {
+    const id = model.slice(3);
+    const listing = html.match(/<script type="application\/json" id="ext3DModels">([\s\S]*?)<\/script>/)?.[1];
+    if (!listing) return null;
+    const entry = JSON.parse(listing)[id];
+    if (!entry) return null;
+    const dimensions = entry.width && entry.depth ? [entry.width, null, entry.depth] : null;
+    return {file:'assets/exterior/'+id+'.glb', exterior:true, dimensions, needsBranding:entry.needsBranding};
+  }
   const tag = id => html.match(new RegExp('<script id="'+id+'"[^>]*>'))?.[0];
   const attr = (element, name) => element?.match(new RegExp(' data-'+name+'="([^"]+)"'))?.[1];
   const source = tag(model === '1' ? 'modelFirst' : 'm'+model+'data');
@@ -103,7 +112,7 @@ async function readModel(source, root, password) {
   return plain[0] === 31 && plain[1] === 139 ? unzip(plain,{maxOutputLength:100*1024*1024}) : plain;
 }
 
-function sharedPage(html, model, expires) {
+function sharedPage(html, model, expires, source) {
   const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(match=>match[1]);
   const library = scripts.find(s=>s.includes('window.__emc3d={'));
   const libraryEnd = library.indexOf(';',library.indexOf('window.__emc3d={'));
@@ -117,7 +126,17 @@ function sharedPage(html, model, expires) {
   const metal = trampoline ? adjustments.match(/window\.emcTrampolineMetal = [\s\S]*?\n\};/)[0] : '';
   const number = /^\d+$/.test(model) ? Number(model) : model;
   const baby = babyModels.has(model);
-  const title = baby ? babyModels.get(model).title : trampoline ? 'Trampolim Modelo '+model.slice(5) : model === 'cama2m' ? 'Cama elástica 2 m' : 'Playground Modelo '+model;
+  const title = source.exterior ? 'Área Externa • Modelo '+model.slice(3) : baby ? babyModels.get(model).title : trampoline ? 'Trampolim Modelo '+model.slice(5) : model === 'cama2m' ? 'Cama elástica 2 m' : 'Playground Modelo '+model;
+  let branding = '';
+  if (source.needsBranding) {
+    const browser = scripts.find(script=>script.includes('let boardLogo;'));
+    branding = browser.slice(browser.indexOf('let boardLogo;'),browser.indexOf('  function disposeScene('))
+      .replace("'assets/exterior/placa-logo-emc.png'", "location.pathname.replace(/\\/$/,'')+'/placa-logo-emc.png'");
+  }
+  const modelDimensions = baby ? [2, 1.8, 1.7] : source.dimensions;
+  const extraArgs = source.exterior
+    ? ', '+JSON.stringify(modelDimensions)+", {decoder:route+'/meshopt_decoder.js'"+(source.needsBranding ? ', brandBoard:brandInformationBoard' : '')+'}'
+    : baby ? ', '+JSON.stringify(modelDimensions) : '';
   const call = `const expiresAt=${expires*1000};
 function expire(){
  if(Date.now()<expiresAt)return;
@@ -133,12 +152,12 @@ async function openSharedModel(){
  const route=location.pathname.replace(/\\/$/,'');
  const notice=document.getElementById('notice');
  try{
-  if (!${baby}) {
+  if (!${baby || source.exterior}) {
    const access=await fetch(route+'/vincular',{method:'POST',headers:{'X-EMC-Share':'1'},cache:'no-store'});
    if(!access.ok){notice.textContent=await access.text();return;}
   }
   if(Date.now()>=expiresAt){expire();return;}
-  standaloneStart(${JSON.stringify(number)},window.emcLightenTrampolineGray,window.emcTrampolineMetal,route+'/modelo.glb'${baby ? ', [2, 1.8, 1.7]' : ''});
+  standaloneStart(${JSON.stringify(number)},window.emcLightenTrampolineGray,window.emcTrampolineMetal,route+'/modelo.glb'${extraArgs});
  }catch{
   notice.textContent='Não foi possível abrir o passeio. Tente novamente.';
  }
@@ -160,7 +179,7 @@ header{position:absolute;inset:0 0 auto;z-index:2;padding:14px 18px;background:#
 #toolbar button{background:#263c49;color:white;border:0;border-radius:8px;padding:12px 16px;font:600 14px system-ui;white-space:nowrap}
 #notice{position:absolute;z-index:1;inset:auto 12px 70px;text-align:center;pointer-events:none;font-size:14px}</style></head>
 <body><header>${title}</header><main id="stage"></main><p id="notice" role="status">Carregando 3D…</p><div id="toolbar"></div>
-<script>${libraryCode}</script><script>${dimensions}</script><script>${gray}\n${metal}\n${viewer}\n${call}</script></body></html>`;
+<script>${libraryCode}</script><script>${dimensions}</script><script>${gray}\n${metal}\n${branding}\n${viewer}\n${call}</script></body></html>`;
 }
 
 function createShareHandler({root,password,authorized}) {
@@ -186,8 +205,16 @@ function createShareHandler({root,password,authorized}) {
         let model;
         try { model = JSON.parse(body)?.model; } catch {}
         const html = await fs.readFile(path.join(root,'index.html'),'utf8');
-        if (typeof model !== 'string' || !modelPattern.test(model) || !modelSource(html,model)) {
+        const source = typeof model === 'string' && modelPattern.test(model) ? modelSource(html,model) : null;
+        if (!source) {
           return message(res,404,'Modelo indisponível.');
+        }
+        if (source.exterior) {
+          const stat = await fs.stat(path.join(root,source.file)).catch(error => {
+            if (error.code !== 'ENOENT') throw error;
+            return null;
+          });
+          if (!stat?.isFile()) return message(res,404,'Modelo indisponível.');
         }
         const expires = Math.floor(Date.now()/1000)+lifetime;
         const payload = model+'.'+expires+'.'+crypto.randomBytes(16).toString('hex');
@@ -196,7 +223,9 @@ function createShareHandler({root,password,authorized}) {
       }
       const [, , token, action, extra] = pathname.split('/');
       const match = tokenPattern.exec(token);
-      if (!match || extra !== undefined || (action && action !== 'modelo.glb' && action !== 'vincular') || !modelPattern.test(match[1])) {
+      const exteriorAsset = action === 'meshopt_decoder.js' || action === 'placa-logo-emc.png';
+      if (!match || extra !== undefined || (action && action !== 'modelo.glb' && action !== 'vincular' && !exteriorAsset) ||
+          !modelPattern.test(match[1]) || (exteriorAsset && !match[1].startsWith('ext'))) {
         return message(res,404,'Link inválido.');
       }
       const claiming = action === 'vincular';
@@ -209,7 +238,7 @@ function createShareHandler({root,password,authorized}) {
       if (Date.now() >= Number(expires)*1000) {
         return message(res,410,'Link expirado. Peça um novo compartilhamento ao vendedor.');
       }
-      if (!babyModels.has(model)) {
+      if (!babyModels.has(model) && !model.startsWith('ext')) {
         const bindingPath = path.join(bindings,expires+'.'+nonce);
         const binding = await readBinding(bindingPath);
         const device = readDevice(req);
@@ -242,6 +271,13 @@ function createShareHandler({root,password,authorized}) {
       const html = await fs.readFile(path.join(root,'index.html'),'utf8');
       const source = modelSource(html,model);
       if (!source) return message(res,404,'Modelo indisponível.');
+      if (exteriorAsset) {
+        if (action === 'placa-logo-emc.png' && !source.needsBranding) return message(res,404,'Arquivo indisponível.');
+        const file = action === 'meshopt_decoder.js' ? 'assets/vendor/meshopt_decoder.js' : 'assets/exterior/placa-logo-emc.png';
+        const data = await fs.readFile(path.join(root,file));
+        if (Date.now() >= Number(expires)*1000) return message(res,410,'Link expirado.');
+        return message(res,200,data,action === 'meshopt_decoder.js' ? 'text/javascript; charset=utf-8' : 'image/png');
+      }
       if (action) {
         const modelData = await readModel(source,root,password);
         if (Date.now() >= Number(expires)*1000) {
@@ -249,7 +285,7 @@ function createShareHandler({root,password,authorized}) {
         }
         return message(res,200,modelData,'model/gltf-binary');
       }
-      return message(res,200,sharedPage(html,model,Number(expires)),'text/html; charset=utf-8');
+      return message(res,200,sharedPage(html,model,Number(expires),source),'text/html; charset=utf-8');
     } catch (error) {
       console.error('Falha ao compartilhar modelo:',error.message);
       return message(res,500,'Não foi possível abrir o compartilhamento.');
