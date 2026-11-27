@@ -5383,6 +5383,19 @@ html:fullscreen #viewer .controls {
   const back = get('extViewerBack');
   const expand = get('extViewerExpand');
   const expandedClass = 'emc-exterior-expanded';
+  const updatedExteriorModels = new Set([
+    '1005', '1018', '1040', '1042', '1043', '1044', '1046', '1047', '2004', '2005',
+    '2006', '2008', '2022', '2027', '2030', '2031', '2034', '2035', '2036', '2037',
+    '2038', '2040', '2044', '2049', '2050', '2057', '2059', '2060', '2061', '2066',
+    '2067', '2068', '2069', '2072', '2073', '2076', '2077', '2087', '2091', '3005',
+    '3008', '3009', '3010', '3014', '3015', '3016', '3018', '3019', '3020', '3023',
+    '3026', '3028', '3030', '3031', '3033', '3034', '3036', '3037', '3040', '3041',
+    '3043', '3045', '3046', '3050', '3052', '3058', '3059', '3060', '3090', '3093',
+    '3094', '3096', '3097', '3100', '3108', '3115', '3118', '3120',
+  ]);
+  for (const id of updatedExteriorModels) {
+    models[id] = {...models[id], path: 'assets/exterior/' + id + '.glb?v=20261127'};
+  }
   for (const card of document.querySelectorAll('#extGrid > .ext-card')) {
     card.toggleAttribute('data-has-3d', Boolean(models[card.dataset.ext]));
   }
@@ -5646,13 +5659,13 @@ html:fullscreen #viewer .controls {
         const response = await fetch(entry.path || 'assets/exterior/'+id+'.glb', {signal:request.signal});
         if (!response.ok) throw Error('Modelo indisponível.');
         const loader = new window.__emc3d.aa();
-        if (id !== '2027' && id !== vilaId) {
+        if (id !== vilaId) {
           const {MeshoptDecoder} = await import('./assets/vendor/meshopt_decoder.js');
           loader.setMeshoptDecoder(MeshoptDecoder);
         }
         const {scene} = await loader.parseAsync(await response.arrayBuffer(), '');
         try {
-          if (!request.signal.aborted && id !== vilaId) await brandInformationBoard(scene);
+          if (!request.signal.aborted && id !== vilaId && !updatedExteriorModels.has(id)) await brandInformationBoard(scene);
         } catch (error) {
           console.warn('Não foi possível aplicar a logo da placa:', error);
         }
