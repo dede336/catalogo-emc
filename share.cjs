@@ -9,7 +9,9 @@ const { gunzip } = require('node:zlib');
 const deriveKey = promisify(crypto.pbkdf2);
 const unzip = promisify(gunzip);
 const lifetime = 7 * 24 * 60 * 60;
-const modelPattern = /^(?:[1-9]|1[0-9]|2[0-5]|cama2m|tramp[1-7])$/;
+const modelPattern = /^(?:[1-9]|1[0-9]|2[0-5]|cama2m|tramp[1-7]|playgroundbaby)$/;
+const babyModel = 'playgroundbaby';
+const babyFile = 'assets/diversos/playground-baby-20261127.glb';
 const tokenPattern = /^([a-z0-9]+)\.(\d{10})\.([a-f0-9]{32})\.([a-f0-9]{64})$/;
 const deviceCookie = 'emc_share_device';
 const blocked = 'Este link já está vinculado a outro navegador. Peça um novo link ao vendedor para acessar por aqui.';
@@ -78,6 +80,7 @@ async function removeExpiredBindings(directory, now) {
 }
 
 function modelSource(html, model) {
+  if (model === babyModel) return {file:babyFile};
   const tag = id => html.match(new RegExp('<script id="'+id+'"[^>]*>'))?.[0];
   const attr = (element, name) => element?.match(new RegExp(' data-'+name+'="([^"]+)"'))?.[1];
   const source = tag(model === '1' ? 'modelFirst' : 'm'+model+'data');
@@ -90,6 +93,7 @@ function modelSource(html, model) {
 
 async function readModel(source, root, password) {
   const data = await fs.readFile(path.join(root,source.file));
+  if (!source.salt) return data;
   const key = await deriveKey(password,Buffer.from(source.salt,'base64'),250000,32,'sha256');
   const decipher = crypto.createDecipheriv('aes-256-gcm',key,Buffer.from(source.iv,'base64'));
   decipher.setAuthTag(data.subarray(-16));
@@ -110,7 +114,8 @@ function sharedPage(html, model, expires) {
   const gray = trampoline ? adjustments.match(/window\.emcLightenTrampolineGray = [\s\S]*?\n\};/)[0] : '';
   const metal = trampoline ? adjustments.match(/window\.emcTrampolineMetal = [\s\S]*?\n\};/)[0] : '';
   const number = /^\d+$/.test(model) ? Number(model) : model;
-  const title = trampoline ? 'Trampolim Modelo '+model.slice(5) : model === 'cama2m' ? 'Cama elástica 2 m' : 'Playground Modelo '+model;
+  const baby = model === babyModel;
+  const title = baby ? 'Playground Baby' : trampoline ? 'Trampolim Modelo '+model.slice(5) : model === 'cama2m' ? 'Cama elástica 2 m' : 'Playground Modelo '+model;
   const call = `const expiresAt=${expires*1000};
 function expire(){
  if(Date.now()<expiresAt)return;
@@ -126,10 +131,12 @@ async function openSharedModel(){
  const route=location.pathname.replace(/\\/$/,'');
  const notice=document.getElementById('notice');
  try{
-  const access=await fetch(route+'/vincular',{method:'POST',headers:{'X-EMC-Share':'1'},cache:'no-store'});
-  if(!access.ok){notice.textContent=await access.text();return;}
+  if (!${baby}) {
+   const access=await fetch(route+'/vincular',{method:'POST',headers:{'X-EMC-Share':'1'},cache:'no-store'});
+   if(!access.ok){notice.textContent=await access.text();return;}
+  }
   if(Date.now()>=expiresAt){expire();return;}
-  standaloneStart(${JSON.stringify(number)},window.emcLightenTrampolineGray,window.emcTrampolineMetal,route+'/modelo.glb');
+  standaloneStart(${JSON.stringify(number)},window.emcLightenTrampolineGray,window.emcTrampolineMetal,route+'/modelo.glb'${baby ? ', [2, 1.8, 1.7]' : ''});
  }catch{
   notice.textContent='Não foi possível abrir o passeio. Tente novamente.';
  }
@@ -200,32 +207,36 @@ function createShareHandler({root,password,authorized}) {
       if (Date.now() >= Number(expires)*1000) {
         return message(res,410,'Link expirado. Peça um novo compartilhamento ao vendedor.');
       }
-      const bindingPath = path.join(bindings,expires+'.'+nonce);
-      const binding = await readBinding(bindingPath);
-      const device = readDevice(req);
-      const matches = binding && device && binding === deviceDigest(device);
-      if (binding && !matches) return message(res,403,blocked);
-      if (claiming) {
-        if (req.headers['x-emc-share'] !== '1' ||
-            (req.headers.origin && new URL(req.headers.origin).host !== req.headers.host)) {
-          return message(res,403,'Origem inválida.');
+      if (model !== babyModel) {
+        const bindingPath = path.join(bindings,expires+'.'+nonce);
+        const binding = await readBinding(bindingPath);
+        const device = readDevice(req);
+        const matches = binding && device && binding === deviceDigest(device);
+        if (binding && !matches) return message(res,403,blocked);
+        if (claiming) {
+          if (req.headers['x-emc-share'] !== '1' ||
+              (req.headers.origin && new URL(req.headers.origin).host !== req.headers.host)) {
+            return message(res,403,'Origem inválida.');
+          }
+          if (matches) return message(res,204,'');
+          await fs.mkdir(bindings,{recursive:true,mode:0o700});
+          const now = Math.floor(Date.now()/1000);
+          if (now >= Number(expires)) return message(res,410,'Link expirado. Peça um novo compartilhamento ao vendedor.');
+          if (now >= nextCleanup) {
+            nextCleanup = now+86400;
+            void removeExpiredBindings(bindings,now).catch(error=>console.error('Falha ao limpar vínculos vencidos:',error.message));
+          }
+          const newDevice = crypto.randomBytes(32).toString('hex');
+          if (!await bindDevice(bindingPath,newDevice)) return message(res,403,blocked);
+          const secure = req.socket.encrypted || req.headers['x-forwarded-proto'] === 'https';
+          res.setHeader('Set-Cookie',deviceCookie+'='+newDevice+'; Path=/compartilhado/'+token+
+            '; Max-Age='+(Number(expires)-now)+'; HttpOnly; SameSite=Lax'+(secure ? '; Secure' : ''));
+          return message(res,204,'');
         }
-        if (matches) return message(res,204,'');
-        await fs.mkdir(bindings,{recursive:true,mode:0o700});
-        const now = Math.floor(Date.now()/1000);
-        if (now >= Number(expires)) return message(res,410,'Link expirado. Peça um novo compartilhamento ao vendedor.');
-        if (now >= nextCleanup) {
-          nextCleanup = now+86400;
-          void removeExpiredBindings(bindings,now).catch(error=>console.error('Falha ao limpar vínculos vencidos:',error.message));
-        }
-        const newDevice = crypto.randomBytes(32).toString('hex');
-        if (!await bindDevice(bindingPath,newDevice)) return message(res,403,blocked);
-        const secure = req.socket.encrypted || req.headers['x-forwarded-proto'] === 'https';
-        res.setHeader('Set-Cookie',deviceCookie+'='+newDevice+'; Path=/compartilhado/'+token+
-          '; Max-Age='+(Number(expires)-now)+'; HttpOnly; SameSite=Lax'+(secure ? '; Secure' : ''));
-        return message(res,204,'');
+        if (action && !matches) return message(res,403,'Abra o link do passeio para acessar o modelo.');
+      } else if (claiming) {
+        return message(res,405,'Método não permitido.');
       }
-      if (action && !matches) return message(res,403,'Abra o link do passeio para acessar o modelo.');
       const html = await fs.readFile(path.join(root,'index.html'),'utf8');
       const source = modelSource(html,model);
       if (!source) return message(res,404,'Modelo indisponível.');

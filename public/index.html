@@ -4277,7 +4277,7 @@ bindSearch(search,cards,empty,card=>card.dataset.ext);document.getElementById('c
 .emc-share-dialog button[type="button"]{background:#bbf122}
 </style><script>(()=>{
 const original=window.emcAddDimensions;if(typeof original!=='function')return;
-async function standaloneStart(number, lightenGray, addMetalReflections, sharedModelUrl){
+async function standaloneStart(number, lightenGray, addMetalReflections, sharedModelUrl, dimensions){
  const T=window.__emc3d,host=document.getElementById('stage'),bar=document.getElementById('toolbar'),notice=document.getElementById('notice');
  try{
  const response = await fetch(sharedModelUrl, { cache: 'no-store' });
@@ -4293,7 +4293,7 @@ async function standaloneStart(number, lightenGray, addMetalReflections, sharedM
  if(addMetalReflections)addMetalReflections(model,renderer,T,scene.environment);
  const box=new T.qt().setFromObject(model),size=new T.L,center=new T.L;box.getSize(size);box.getCenter(center);model.position.sub(center);scene.add(model);const max=Math.max(size.x,size.y,size.z);light.position.set(max*1.6,max*2.2,max*1.4);light.castShadow=true;light.shadow.mapSize.set(1024,1024);Object.assign(light.shadow.camera,{left:-max,right:max,top:max,bottom:-max,near:Math.max(.01,max*.01),far:max*8});light.shadow.normalBias=max*.001;model.traverse(o=>{if(!o.isMesh)return;const mats=Array.isArray(o.material)?o.material:[o.material];o.castShadow=mats.every(m=>m&&!m.transparent);o.receiveShadow=true});
  const camera=new T.mt(45,1,max/1000,max*100);camera.position.set(max*1.25,max*.9,max*1.7);const controls=new T.ha(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,0,0);controls.update();const start=camera.position.clone();
- window.emcAddDimensions(number,model,camera,host,bar);const cota=bar.querySelector('[data-cotas]');if(cota)cota.click();
+ window.emcAddDimensions(number,model,camera,host,bar,dimensions);const cota=bar.querySelector('[data-cotas]');if(cota)cota.click();
  function resize(){if(host.clientWidth&&host.clientHeight){camera.aspect=host.clientWidth/host.clientHeight;camera.updateProjectionMatrix();renderer.setSize(host.clientWidth,host.clientHeight)}}new ResizeObserver(resize).observe(host);resize();notice.textContent='Arraste para girar • Use os dedos para aproximar';renderer.setAnimationLoop(()=>{if(!host.isConnected){renderer.setAnimationLoop(null);renderer.dispose();return}controls.update();renderer.render(scene,camera)});
  }).catch(()=>{notice.textContent='Não foi possível abrir o modelo 3D neste aparelho.'})}catch(e){notice.textContent='Não foi possível abrir o modelo 3D neste aparelho.'}
 }
@@ -4353,6 +4353,7 @@ async function shareModel(number, button) {
     button.disabled = false;
   }
 }
+window.emcShareModel = shareModel;
 window.emcAddDimensions = function(n, model, camera, container, bar, footprint) {
   const result = original.apply(this, arguments);
   bar?.classList.add('emc-fs-controls');
@@ -5319,12 +5320,16 @@ html:fullscreen #viewer .controls {
 <section id="extViewer" class="tramp-viewer" hidden aria-label="Passeio 3D da Área Externa">
   <div id="extCanvas"></div>
   <header class="emc-model-header"><strong id="extViewerTitle"></strong><img src="assets/f1ac55cd8529aafd7b72d878.png" alt="EMC Playgrounds"></header>
+  <p id="babyViewerHint" class="ext-baby-only">Arraste para girar em volta do playground</p>
   <div id="extControls" class="emc-fs-controls" aria-label="Controles do modelo 3D">
     <button id="extViewerBack" type="button">Apresentação</button>
     <button id="extViewerCatalog" type="button">Catálogo</button>
+    <button id="babyViewerLeft" class="ext-baby-only" type="button" aria-label="Girar à esquerda">←</button>
     <button id="extViewerRotate" type="button" aria-pressed="false">Giro automático</button>
+    <button id="babyViewerRight" class="ext-baby-only" type="button" aria-label="Girar à direita">→</button>
     <button id="extViewerReset" type="button">Voltar à vista inicial</button>
     <button id="extViewerExpand" type="button" aria-pressed="false">Expandir</button>
+    <button id="babyViewerShare" class="ext-baby-only" type="button">Compartilhar 3D</button>
   </div>
 </section>
 <style>
@@ -5342,6 +5347,25 @@ html:fullscreen #viewer .controls {
   padding: 10px 14px; background: #263c49; color: #fff; font-weight: 700;
 }
 #extControls { position: absolute; z-index: 26; }
+#extViewer:not([data-diversos]) .ext-baby-only { display: none !important; }
+#extViewer[data-diversos] #extControls > button {
+  background: #31455e;
+  border-radius: 7px;
+  font-weight: 400;
+  padding: 10px;
+}
+#babyViewerHint {
+  position: absolute;
+  inset: auto 8px calc(74px + env(safe-area-inset-bottom, 0px));
+  margin: 0;
+  text-align: center;
+  color: #1d3043;
+  pointer-events: none;
+}
+@media (max-height: 500px), (max-width: 1100px) {
+  #babyViewerHint { display: none; }
+}
+#extViewer.emc-exterior-expanded #babyViewerHint, html:fullscreen #babyViewerHint { display: none; }
 #extViewer[hidden], #extOpen3D[hidden], #ext3DNote[hidden] { display: none; }
 #ext3DNote { color: #fff; }
 </style>
@@ -5393,6 +5417,8 @@ html:fullscreen #viewer .controls {
   const rotate = get('extViewerRotate');
   const back = get('extViewerBack');
   const expand = get('extViewerExpand');
+  const catalogs = get('extViewerCatalog');
+  const babyShare = get('babyViewerShare');
   const expandedClass = 'emc-exterior-expanded';
   const updatedExteriorModels = new Set([
     '1005', '1018', '1040', '1042', '1043', '1044', '1046', '1047', '2004', '2005',
@@ -5574,6 +5600,7 @@ html:fullscreen #viewer .controls {
     const releaseCotas = dimensions
       ? window.emcAddDimensions(id, model, camera, viewer, toolbar, dimensions)
       : undefined;
+    if (id === vilaId) toolbar.append(babyShare);
     const releaseLighting = window.emcLightControl(key, viewer, toolbar, renderer, scene, controls, [model]);
     active = {id, renderer, camera, controls, scene, environment, releaseCotas, releaseLighting};
     rotate.setAttribute('aria-pressed', 'false');
@@ -5583,7 +5610,11 @@ html:fullscreen #viewer .controls {
   function syncExpand() {
     if (!document.fullscreenElement) ownsFullscreen = false;
     const expanded = ownsFullscreen || viewer.classList.contains(expandedClass);
-    expand.textContent = expanded ? 'Reduzir' : 'Expandir';
+    const baby = active?.id === vilaId;
+    const label = expanded ? 'Sair da tela cheia' : 'Tela cheia';
+    expand.textContent = baby ? '⛶' : expanded ? 'Reduzir' : 'Expandir';
+    expand.setAttribute('aria-label', baby ? label : expand.textContent);
+    expand.title = baby ? label : expand.textContent;
     expand.setAttribute('aria-pressed', String(expanded));
     resize();
   }
@@ -5634,7 +5665,7 @@ html:fullscreen #viewer .controls {
 
   back.onclick = () => close();
   viewer.addEventListener('emc-switch-exterior', () => close(true));
-  get('extViewerCatalog').onclick = () => {
+  catalogs.onclick = () => {
     if (active?.id === vilaId) {
       close();
       return;
@@ -5651,6 +5682,17 @@ html:fullscreen #viewer .controls {
     rotate.textContent = on ? 'Pausar giro' : 'Giro automático';
   };
   get('extViewerReset').onclick = () => active?.controls.reset();
+  function rotateBaby(step) {
+    if (active?.id !== vilaId) return;
+    const {camera, controls} = active;
+    const orbit = camera.position.clone().sub(controls.target);
+    orbit.applyAxisAngle(camera.up, step * Math.PI / 6);
+    camera.position.copy(controls.target).add(orbit);
+    controls.update();
+  }
+  get('babyViewerLeft').onclick = () => rotateBaby(1);
+  get('babyViewerRight').onclick = () => rotateBaby(-1);
+  babyShare.onclick = () => window.emcShareModel('playgroundbaby', babyShare);
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && !viewer.hidden) close();
   });
@@ -5690,7 +5732,12 @@ html:fullscreen #viewer .controls {
       const title = entry.title || 'Área Externa • Modelo ' + id;
       get('extViewerTitle').textContent = title;
       viewer.setAttribute('aria-label', 'Visualização 3D: ' + title);
-      viewer.toggleAttribute('data-diversos', id === vilaId);
+      const baby = id === vilaId;
+      viewer.toggleAttribute('data-diversos', baby);
+      back.textContent = baby ? 'Ver apresentação' : 'Apresentação';
+      catalogs.textContent = baby ? 'Catálogos' : 'Catálogo';
+      toolbar.prepend(...(baby ? [catalogs, back] : [back, catalogs]));
+      syncExpand();
       back.hidden = false;
       note.hidden = true;
       viewer.hidden = false;
