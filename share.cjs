@@ -9,9 +9,11 @@ const { gunzip } = require('node:zlib');
 const deriveKey = promisify(crypto.pbkdf2);
 const unzip = promisify(gunzip);
 const lifetime = 7 * 24 * 60 * 60;
-const modelPattern = /^(?:[1-9]|1[0-9]|2[0-5]|cama2m|tramp[1-7]|playgroundbaby)$/;
-const babyModel = 'playgroundbaby';
-const babyFile = 'assets/diversos/playground-baby-sem-rampa-direita.glb';
+const modelPattern = /^(?:[1-9]|1[0-9]|2[0-5]|cama2m|tramp[1-7]|playgroundbaby2?)$/;
+const babyModels = new Map([
+  ['playgroundbaby', {title:'Playground Baby • Modelo 1', file:'assets/diversos/playground-baby-tubos-redondos.glb'}],
+  ['playgroundbaby2', {title:'Playground Baby • Modelo 2', file:'assets/diversos/playground-baby-sem-rampa-direita.glb'}]
+]);
 const tokenPattern = /^([a-z0-9]+)\.(\d{10})\.([a-f0-9]{32})\.([a-f0-9]{64})$/;
 const deviceCookie = 'emc_share_device';
 const blocked = 'Este link já está vinculado a outro navegador. Peça um novo link ao vendedor para acessar por aqui.';
@@ -80,7 +82,7 @@ async function removeExpiredBindings(directory, now) {
 }
 
 function modelSource(html, model) {
-  if (model === babyModel) return {file:babyFile};
+  if (babyModels.has(model)) return babyModels.get(model);
   const tag = id => html.match(new RegExp('<script id="'+id+'"[^>]*>'))?.[0];
   const attr = (element, name) => element?.match(new RegExp(' data-'+name+'="([^"]+)"'))?.[1];
   const source = tag(model === '1' ? 'modelFirst' : 'm'+model+'data');
@@ -114,8 +116,8 @@ function sharedPage(html, model, expires) {
   const gray = trampoline ? adjustments.match(/window\.emcLightenTrampolineGray = [\s\S]*?\n\};/)[0] : '';
   const metal = trampoline ? adjustments.match(/window\.emcTrampolineMetal = [\s\S]*?\n\};/)[0] : '';
   const number = /^\d+$/.test(model) ? Number(model) : model;
-  const baby = model === babyModel;
-  const title = baby ? 'Playground Baby' : trampoline ? 'Trampolim Modelo '+model.slice(5) : model === 'cama2m' ? 'Cama elástica 2 m' : 'Playground Modelo '+model;
+  const baby = babyModels.has(model);
+  const title = baby ? babyModels.get(model).title : trampoline ? 'Trampolim Modelo '+model.slice(5) : model === 'cama2m' ? 'Cama elástica 2 m' : 'Playground Modelo '+model;
   const call = `const expiresAt=${expires*1000};
 function expire(){
  if(Date.now()<expiresAt)return;
@@ -207,7 +209,7 @@ function createShareHandler({root,password,authorized}) {
       if (Date.now() >= Number(expires)*1000) {
         return message(res,410,'Link expirado. Peça um novo compartilhamento ao vendedor.');
       }
-      if (model !== babyModel) {
+      if (!babyModels.has(model)) {
         const bindingPath = path.join(bindings,expires+'.'+nonce);
         const binding = await readBinding(bindingPath);
         const device = readDevice(req);

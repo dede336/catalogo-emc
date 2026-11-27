@@ -5318,6 +5318,11 @@ html:fullscreen #viewer .controls {
 <section id="extViewer" class="tramp-viewer" hidden aria-label="Passeio 3D da Área Externa">
   <div id="extCanvas"></div>
   <header class="emc-model-header"><strong id="extViewerTitle"></strong><img src="assets/f1ac55cd8529aafd7b72d878.png" alt="EMC Playgrounds"></header>
+  <div id="babyVariantPicker" class="ext-baby-only" role="group" aria-label="Escolher modelo do Playground Baby">
+    <button type="button" data-baby-variant="1" aria-pressed="true">Modelo 1</button>
+    <button type="button" data-baby-variant="2" aria-pressed="false">Modelo 2</button>
+    <p id="babyVariantStatus" role="status" hidden></p>
+  </div>
   <p id="babyViewerHint" class="ext-baby-only">Arraste para girar em volta do playground</p>
   <div id="extControls" class="emc-fs-controls" aria-label="Controles do modelo 3D">
     <button id="extViewerBack" type="button">Apresentação</button>
@@ -5346,6 +5351,25 @@ html:fullscreen #viewer .controls {
 }
 #extControls { position: absolute; z-index: 26; }
 #extViewer:not([data-diversos]) .ext-baby-only { display: none !important; }
+#babyVariantPicker {
+  position: absolute;
+  z-index: 26;
+  top: calc(88px + env(safe-area-inset-top, 0px));
+  left: max(8px, env(safe-area-inset-left, 0px));
+  padding: 5px;
+  border-radius: 10px;
+  background: #152131;
+  color: #fff;
+}
+#babyVariantPicker button[aria-pressed="true"] { background: #94eff3; color: #152131; }
+#babyVariantStatus { margin: 6px; font-size: 13px; }
+@media (max-width: 600px) {
+  #babyVariantPicker { top: calc(66px + env(safe-area-inset-top, 0px)); }
+}
+#extViewer.emc-exterior-expanded #babyVariantPicker, html:fullscreen #babyVariantPicker {
+  top: max(8px, env(safe-area-inset-top, 0px));
+}
+html:fullscreen:not(.emc-controls-visible) #babyVariantPicker { visibility: hidden; }
 #extViewer[data-diversos] #extControls > button {
   background: #31455e;
   border-radius: 7px;
@@ -5370,8 +5394,13 @@ html:fullscreen #viewer .controls {
 <script>
 (() => {
   const vilaId = 'vila-do-sol';
+  const babyVariants = {
+    1: {path: 'assets/diversos/playground-baby-tubos-redondos.glb', share: 'playgroundbaby'},
+    2: {path: 'assets/diversos/playground-baby-sem-rampa-direita.glb', share: 'playgroundbaby2'}
+  };
+  let babySelected = '1';
   const models = {
-    [vilaId]: {title: 'Playground Baby', path: 'assets/diversos/playground-baby-sem-rampa-direita.glb'},
+    [vilaId]: {title: 'Playground Baby'},
     '2027': {width: 6.29, depth: 3.67},
     '4002': {width: 8.68, depth: 8.96},
     '4004': {width: 5.52, depth: 6.56},
@@ -5417,6 +5446,9 @@ html:fullscreen #viewer .controls {
   const expand = get('extViewerExpand');
   const catalogs = get('extViewerCatalog');
   const babyShare = get('babyViewerShare');
+  const babyPicker = get('babyVariantPicker');
+  const babyVariantStatus = get('babyVariantStatus');
+  const babyVariantButtons = [...babyPicker.querySelectorAll('button[data-baby-variant]')];
   const expandedClass = 'emc-exterior-expanded';
   const updatedExteriorModels = new Set([
     '1005', '1018', '1040', '1042', '1043', '1044', '1046', '1047', '2004', '2005',
@@ -5647,6 +5679,10 @@ html:fullscreen #viewer .controls {
   document.addEventListener('fullscreenchange', syncExpand);
 
   function close(keepExpanded = false) {
+    if (active?.id === vilaId) {
+      pending?.abort();
+      babyVariantStatus.hidden = true;
+    }
     viewer.hidden = true;
     active?.renderer.setAnimationLoop(null);
     viewer.querySelector('.emc-studio:not([hidden]) .studio-head button')?.click();
@@ -5690,13 +5726,19 @@ html:fullscreen #viewer .controls {
   }
   get('babyViewerLeft').onclick = () => rotateBaby(1);
   get('babyViewerRight').onclick = () => rotateBaby(-1);
-  babyShare.onclick = () => window.emcShareModel('playgroundbaby', babyShare);
+  babyShare.onclick = () => window.emcShareModel(babyVariants[babySelected].share, babyShare);
+  for (const button of babyVariantButtons) {
+    button.onclick = () => openModel(vilaId, button, babyVariantStatus, button.dataset.babyVariant);
+  }
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && !viewer.hidden) close();
   });
 
-  async function openModel(id, trigger, note) {
+  async function openModel(id, trigger, note, variant = babySelected) {
     const entry = models[id];
+    const baby = id === vilaId;
+    const switching = babyVariantButtons.includes(trigger);
+    const modelPath = baby ? babyVariants[variant].path : entry?.path || 'assets/exterior/'+id+'.glb';
     if (!entry || trigger.disabled) return;
     pending?.abort();
     const request = new AbortController();
@@ -5705,9 +5747,9 @@ html:fullscreen #viewer .controls {
     note.textContent = 'Carregando o modelo 3D…';
     trigger.disabled = true;
     try {
-      if (active?.id !== id) {
+      if (active?.id !== id || (baby && active.variant !== variant)) {
         await window.emcPaintBefore3D();
-        const response = await fetch(entry.path || 'assets/exterior/'+id+'.glb', {signal:request.signal});
+        const response = await fetch(modelPath, {signal:request.signal});
         if (!response.ok) throw Error('Modelo indisponível.');
         const loader = new window.__emc3d.aa();
         if (id !== vilaId) {
@@ -5726,11 +5768,17 @@ html:fullscreen #viewer .controls {
         }
         releaseActive();
         prepare(id, scene);
+        if (baby) active.variant = variant;
+      }
+      if (baby) {
+        babySelected = variant;
+        for (const button of babyVariantButtons) {
+          button.setAttribute('aria-pressed', String(button.dataset.babyVariant === variant));
+        }
       }
       const title = entry.title || 'Área Externa • Modelo ' + id;
       get('extViewerTitle').textContent = title;
       viewer.setAttribute('aria-label', 'Visualização 3D: ' + title);
-      const baby = id === vilaId;
       viewer.toggleAttribute('data-diversos', baby);
       back.textContent = baby ? 'Ver apresentação' : 'Apresentação';
       catalogs.textContent = baby ? 'Catálogos' : 'Catálogo';
@@ -5744,12 +5792,15 @@ html:fullscreen #viewer .controls {
         active.controls.update();
         active.renderer.render(active.scene,active.camera);
       });
-      (id === vilaId ? get('extViewerCatalog') : back).focus();
+      if (!switching) (baby ? get('extViewerCatalog') : back).focus();
     } catch (error) {
       if (!request.signal.aborted) note.textContent = 'Não foi possível carregar o 3D. Tente de novo.';
     } finally {
       if (pending === request) pending = undefined;
       trigger.disabled = false;
+      if (switching && !request.signal.aborted && !viewer.hidden && active?.variant === variant) {
+        trigger.focus();
+      }
     }
   }
 
